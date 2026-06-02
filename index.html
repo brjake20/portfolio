@@ -714,10 +714,14 @@
 </head>
 <body>
 
-<!-- Loader covers the screen until the video has buffered enough to scrub smoothly -->
+<!-- Loader covers the screen until the video has buffered enough to scrub -->
 <div class="loader" id="loader">
-  <div class="loader-mark">setting the scene</div>
-  <div class="loader-bar"></div>
+  <div class="loader-mark" id="loaderMark">setting the scene</div>
+  <div class="loader-bar" id="loaderBar"></div>
+  <div class="loader-hint" id="loaderHint" style="display:none;font-family:var(--mono);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--fg-dim);margin-top:1rem;max-width:340px;text-align:center;line-height:1.5;">
+    Taking longer than usual.<br>
+    If you opened this file directly, run a local server instead (see README).
+  </div>
 </div>
 
 <div class="cursor-dot"></div>
@@ -732,9 +736,6 @@
     muted
     playsinline
     preload="auto"
-    crossorigin="anonymous"
-    disablepictureinpicture
-    disableremoteplayback
   ></video>
   <div class="water-stage" id="waterStage">
     <canvas class="water-canvas" id="waterCanvas"></canvas>
@@ -1025,6 +1026,9 @@
 
   // Hide loader once the video can play through
   let videoReady = false;
+  const loaderHint = document.getElementById('loaderHint');
+  const loaderMark = document.getElementById('loaderMark');
+
   function markReady() {
     if (videoReady) return;
     videoReady = true;
@@ -1033,11 +1037,24 @@
   }
   video.addEventListener('canplaythrough', markReady);
   video.addEventListener('loadeddata', () => {
-    // Fallback: if canplaythrough never fires (slow connection), force ready after 3s
+    // If basic data loaded but canplaythrough hasn't fired in 3s, force ready
     setTimeout(markReady, 3000);
   });
-  // Hard fallback: never block forever
-  setTimeout(markReady, 8000);
+  video.addEventListener('error', e => {
+    // Video failed to load entirely (file missing, wrong path, codec issue)
+    console.error('Video failed to load:', video.error);
+    loaderMark.textContent = 'video could not load';
+    loaderHint.style.display = 'block';
+    loaderHint.innerHTML = 'Check that portfolio_background.mp4 is in the same folder as index.html, and that you are viewing this through a local server (not file://). Error code: ' + (video.error ? video.error.code : 'unknown');
+  });
+
+  // Show "taking longer than usual" hint after 5 seconds
+  setTimeout(() => {
+    if (!videoReady) loaderHint.style.display = 'block';
+  }, 5000);
+
+  // Hard fallback — never block forever
+  setTimeout(markReady, 12000);
 
   let targetTime = 0, currentVideoTime = 0;
   function scrubLoop() {
