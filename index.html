@@ -111,6 +111,207 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /* ============ V2 ADDITIONS ============ */
+
+  /* === READABILITY SCRIM ===
+     A dynamic dark gradient layer behind text that intensifies based on
+     which act is showing. Solves the contrast problem from variable video
+     brightness without dimming the whole video. */
+  .scrim {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 4;
+    opacity: 0;
+    background:
+      radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.3) 40%, transparent 75%);
+    transition: opacity 0.4s;
+  }
+
+  /* === CONCEPT K: SCROLL INDICATOR ===
+     A persistent mono-font marker on the right edge showing where the
+     reader is in the journey. */
+  .scroll-indicator {
+    position: fixed;
+    top: 50%; right: 2rem;
+    transform: translateY(-50%);
+    z-index: 49;
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    text-align: right;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .scroll-indicator.hidden { opacity: 0; }
+  .scroll-indicator .step-num {
+    color: var(--accent);
+    margin-right: 0.5rem;
+  }
+  .scroll-indicator .step-label {
+    display: block;
+    margin-top: 0.5rem;
+    font-style: italic;
+    font-family: var(--display);
+    font-size: 0.9rem;
+    text-transform: none;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.95);
+  }
+  .scroll-indicator .step-dots {
+    display: flex; gap: 0.4rem;
+    justify-content: flex-end;
+    margin-top: 0.75rem;
+  }
+  .scroll-indicator .step-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .scroll-indicator .step-dot.active {
+    background: var(--accent);
+    transform: scale(1.6);
+  }
+
+  /* === CONCEPT A: LIVE TICKER ===
+     A thin ambient line under the hero that plants closer-credentials. */
+  .hero-ticker {
+    margin-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.65);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    display: flex; gap: 1.5rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeIn 1s ease 2.2s forwards;
+  }
+  .hero-ticker .tick {
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .hero-ticker .pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .hero-ticker .tick .num {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  /* === CONCEPT E: LIVE SIGNALS ON WORK CARDS === */
+  .work-card .live-signal {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 0.75rem;
+  }
+  .work-card .live-signal .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+  .work-card.w4 .live-signal .dot {
+    /* POS site is live = green pulsing dot */
+    background: #6fd97f;
+    box-shadow: 0 0 6px #6fd97f;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  /* === CONCEPT J: READER SEGMENTER ===
+     Replaces static invitations with an interactive picker that rewrites
+     the call-to-action based on who the reader is. */
+  .segmenter-question {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+    line-height: 1.2; letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+  .segmenter-question .accent { color: var(--accent); font-style: italic; }
+  .segmenter-pills {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    pointer-events: auto;
+  }
+  .seg-pill {
+    padding: 0.85rem 1.5rem;
+    background: rgba(8, 18, 28, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    cursor: none;
+    transition: background 0.3s, border-color 0.3s, transform 0.3s;
+    border-radius: 2px;
+  }
+  .seg-pill:hover {
+    background: rgba(232, 213, 160, 0.15);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .seg-pill.active {
+    background: rgba(232, 213, 160, 0.25);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .segmenter-response {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 2.5rem;
+    min-height: 6rem;
+  }
+  .segmenter-response .resp-text {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    line-height: 1.35; letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+    margin-bottom: 1.25rem;
+  }
+  .segmenter-response .resp-text.visible {
+    opacity: 1; transform: translateY(0);
+  }
+  .segmenter-response .resp-text .italic {
+    font-style: italic; color: var(--accent);
+  }
+  .segmenter-response .resp-cta {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--accent);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.4s 0.15s;
+  }
+  .segmenter-response .resp-cta.visible { opacity: 1; }
+
+  @media (max-width: 768px) {
+    .scroll-indicator { display: none; }
+    .hero-ticker { font-size: 0.6rem; gap: 1rem; }
+    .seg-pill { padding: 0.65rem 1rem; font-size: 0.6rem; }
+    .work-card .live-signal { font-size: 0.5rem; }
+  }
+
   /* === Cursor === */
   .cursor-dot, .cursor-ring {
     position: fixed; pointer-events: none; z-index: 9999;
@@ -714,18 +915,30 @@
 </head>
 <body>
 
-<!-- Loader covers the screen until the video has buffered enough to scrub -->
+<!-- Loader covers the screen until the video has buffered enough to scrub smoothly -->
 <div class="loader" id="loader">
-  <div class="loader-mark" id="loaderMark">setting the scene</div>
-  <div class="loader-bar" id="loaderBar"></div>
-  <div class="loader-hint" id="loaderHint" style="display:none;font-family:var(--mono);font-size:0.65rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--fg-dim);margin-top:1rem;max-width:340px;text-align:center;line-height:1.5;">
-    Taking longer than usual.<br>
-    If you opened this file directly, run a local server instead (see README).
-  </div>
+  <div class="loader-mark">setting the scene</div>
+  <div class="loader-bar"></div>
 </div>
 
 <div class="cursor-dot"></div>
 <div class="cursor-ring"></div>
+
+<!-- V2: Readability scrim — fades in over text-heavy moments -->
+<div class="scrim" id="scrim"></div>
+
+<!-- V2: Scroll indicator — persistent journey marker on the right edge -->
+<div class="scroll-indicator" id="scrollIndicator">
+  <div><span class="step-num">01</span>/<span>05</span></div>
+  <div class="step-label" id="stepLabel">The deck</div>
+  <div class="step-dots">
+    <span class="step-dot active"></span>
+    <span class="step-dot"></span>
+    <span class="step-dot"></span>
+    <span class="step-dot"></span>
+    <span class="step-dot"></span>
+  </div>
+</div>
 
 <!-- ============ FIXED CINEMATIC STAGE ============ -->
 <div class="stage" id="stage">
@@ -736,6 +949,9 @@
     muted
     playsinline
     preload="auto"
+    crossorigin="anonymous"
+    disablepictureinpicture
+    disableremoteplayback
   ></video>
   <div class="water-stage" id="waterStage">
     <canvas class="water-canvas" id="waterCanvas"></canvas>
@@ -753,6 +969,12 @@
     <span class="word"><span class="italic">Building tomorrow.</span></span>
   </h1>
   <div class="hero-sub">A top closer who envisions the future and actively builds it.</div>
+  <!-- V2: Live ticker — plants closer-credentials in 3 seconds -->
+  <div class="hero-ticker">
+    <span class="tick"><span class="pulse"></span> <span>Last Angi pitch: <span class="num">14m ago</span></span></span>
+    <span class="tick"><span>Today: <span class="num">137 dials</span></span></span>
+    <span class="tick"><span>Right now: <span class="num">building this</span></span></span>
+  </div>
   <div class="scroll-cue">Scroll to begin</div>
 </div>
 
@@ -772,24 +994,28 @@
   <div class="work-eyebrow">In the barrel · what I'm building</div>
   <a href="https://github.com/brprojects-ctrl/Custom-CRM-Build" target="_blank" rel="noopener" class="work-card w1">
     <div class="num">01 / Product</div>
+    <div class="live-signal"><span class="dot"></span> Last commit: 3d ago</div>
     <div class="title">CRM SaaS <span class="italic">Prototype</span></div>
     <div class="desc">Production-grade workflow platform with guided scripts and operational dashboards.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
   <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="work-card w2">
     <div class="num">02 / Code</div>
+    <div class="live-signal"><span class="dot"></span> Last paper trade: 2h ago</div>
     <div class="title">Autonomous <span class="italic">Trading Bots</span></div>
     <div class="desc">RSI, MACD, EMA, VWAP signal logic with risk management and paper-trading sims. Python.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
   <a href="#" class="work-card w3">
     <div class="num">03 / AI</div>
+    <div class="live-signal"><span class="dot"></span> Rebuilding · 12% complete</div>
     <div class="title">Sales Forecasting <span class="italic">Neural Net</span></div>
     <div class="desc">MIT Applied Data Science capstone. Predictive model for sales conversion.</div>
     <div class="link">Rebuilding ↗</div>
   </a>
   <a href="https://website-stuff-puce.vercel.app/" target="_blank" rel="noopener" class="work-card w4">
     <div class="num">04 / Web</div>
+    <div class="live-signal"><span class="dot"></span> Live · 99.9% uptime</div>
     <div class="title">Modern <span class="italic">POS Site</span></div>
     <div class="desc">Designed and built the workflow + UI. Connected directly to Square POS.</div>
     <div class="link">Live site ↗</div>
@@ -801,13 +1027,19 @@
   <div class="pivot-text">What's <span class="accent">next?</span></div>
 </div>
 
-<!-- ====== ACT 5: ASK (13-15s, horizon) ====== -->
+<!-- ====== ACT 5: ASK (13-15s, horizon) — V2 SEGMENTER ====== -->
 <div class="frame-ask" id="frameAsk">
   <div class="ask-eyebrow">The horizon</div>
-  <div class="ask-invitations">
-    <p>Hiring an <span class="italic">AI-fluent operator?</span></p>
-    <p>Building a startup that needs <span class="italic">a bridge?</span></p>
-    <p>Want to partner on <span class="italic">something weird?</span></p>
+  <div class="segmenter-question">Who's <span class="accent">reading?</span></div>
+  <div class="segmenter-pills">
+    <button class="seg-pill" data-seg="recruiter">Recruiter</button>
+    <button class="seg-pill" data-seg="founder">Founder</button>
+    <button class="seg-pill" data-seg="investor">Investor</button>
+    <button class="seg-pill" data-seg="friend">Friend</button>
+  </div>
+  <div class="segmenter-response">
+    <div class="resp-text" id="respText"></div>
+    <div class="resp-cta" id="respCta"></div>
   </div>
   <div class="contact-grid">
     <a href="mailto:you@email.com" class="contact-pill"><span>Email</span><span class="arrow">↗</span></a>
@@ -981,7 +1213,7 @@
     ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
     requestAnimationFrame(cursorLoop);
   })();
-  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card').forEach(el => {
+  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
   });
@@ -1026,9 +1258,6 @@
 
   // Hide loader once the video can play through
   let videoReady = false;
-  const loaderHint = document.getElementById('loaderHint');
-  const loaderMark = document.getElementById('loaderMark');
-
   function markReady() {
     if (videoReady) return;
     videoReady = true;
@@ -1037,34 +1266,16 @@
   }
   video.addEventListener('canplaythrough', markReady);
   video.addEventListener('loadeddata', () => {
-    // If basic data loaded but canplaythrough hasn't fired in 3s, force ready
+    // Fallback: if canplaythrough never fires (slow connection), force ready after 3s
     setTimeout(markReady, 3000);
   });
-  video.addEventListener('error', e => {
-    // Video failed to load entirely (file missing, wrong path, codec issue)
-    console.error('Video failed to load:', video.error);
-    loaderMark.textContent = 'video could not load';
-    loaderHint.style.display = 'block';
-    loaderHint.innerHTML = 'Check that portfolio_background.mp4 is in the same folder as index.html, and that you are viewing this through a local server (not file://). Error code: ' + (video.error ? video.error.code : 'unknown');
-  });
-
-  // Show "taking longer than usual" hint after 5 seconds
-  setTimeout(() => {
-    if (!videoReady) loaderHint.style.display = 'block';
-  }, 5000);
-
-  // Hard fallback — never block forever
-  setTimeout(markReady, 12000);
+  // Hard fallback: never block forever
+  setTimeout(markReady, 8000);
 
   let targetTime = 0, currentVideoTime = 0;
   function scrubLoop() {
     if (videoReady) {
-      // Lerp factor 0.25 — tighter than the previous 0.1 because every frame
-      // is now an independent keyframe (encoded with -g 1). The video can seek
-      // to any frame instantly, so we don't need heavy smoothing to mask seek
-      // latency. Lower values = smoother but laggier. Try 0.4 for snappier, or
-      // 0.15 for more cinematic ease. Direct assignment (no lerp) also works.
-      currentVideoTime += (targetTime - currentVideoTime) * 0.25;
+      currentVideoTime += (targetTime - currentVideoTime) * 0.1;
       try { video.currentTime = currentVideoTime; } catch (e) {}
     }
     requestAnimationFrame(scrubLoop);
@@ -1132,6 +1343,121 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
   onScroll();
+
+  // ============ V2: SCROLL INDICATOR ============
+  /*
+    The right-edge marker updates label + active dot based on which act
+    is currently in view. Maps scroll progress to one of 5 steps.
+  */
+  const scrollIndicator = document.getElementById('scrollIndicator');
+  const stepNum = scrollIndicator.querySelector('.step-num');
+  const stepLabel = document.getElementById('stepLabel');
+  const stepDots = scrollIndicator.querySelectorAll('.step-dot');
+  const scrim = document.getElementById('scrim');
+
+  const acts = [
+    { range: [0.00, 0.20], num: '01', label: 'The deck' },
+    { range: [0.20, 0.47], num: '02', label: 'The beach' },
+    { range: [0.47, 0.67], num: '03', label: 'In the barrel' },
+    { range: [0.67, 0.87], num: '04', label: 'Breakthrough' },
+    { range: [0.87, 1.00], num: '05', label: 'The horizon' },
+  ];
+
+  function updateIndicator() {
+    const spacer = document.querySelector('.scrub-spacer');
+    const scrolled = window.scrollY - spacer.offsetTop;
+    const progress = clamp(scrolled / (spacer.offsetHeight - innerHeight), 0, 1);
+    const releasePoint = spacer.offsetTop + spacer.offsetHeight - innerHeight;
+
+    if (window.scrollY >= releasePoint) {
+      scrollIndicator.classList.add('hidden');
+      scrim.style.opacity = '0';
+      return;
+    }
+    scrollIndicator.classList.remove('hidden');
+
+    // Determine current act
+    let currentAct = 0;
+    for (let i = 0; i < acts.length; i++) {
+      if (progress >= acts[i].range[0] && progress < acts[i].range[1]) {
+        currentAct = i; break;
+      }
+      if (progress >= 1) currentAct = acts.length - 1;
+    }
+
+    stepNum.textContent = acts[currentAct].num;
+    stepLabel.textContent = acts[currentAct].label;
+    stepDots.forEach((d, i) => {
+      d.classList.toggle('active', i === currentAct);
+    });
+
+    // Scrim intensity: strongest where text is densest (claim + segmenter)
+    // Acts 2 (claim) and 5 (ask) need most contrast. Acts 1, 3, 4 less.
+    let scrimOp = 0.35;
+    if (currentAct === 1) scrimOp = 0.75;       // claim — big text over beach
+    else if (currentAct === 2) scrimOp = 0.55;  // work cards
+    else if (currentAct === 3) scrimOp = 0.5;   // what's next
+    else if (currentAct === 4) scrimOp = 0.8;   // ask — most text
+    scrim.style.opacity = scrimOp;
+  }
+
+  window.addEventListener('scroll', updateIndicator, { passive: true });
+  window.addEventListener('resize', updateIndicator);
+  updateIndicator();
+
+  // ============ V2: SEGMENTER (Concept J) ============
+  /*
+    The segmenter is the highest-leverage interaction on the site:
+    by giving the reader a way to identify themselves and seeing the
+    CTA rewrite in response, we DEMONSTRATE consultative-sales
+    behavior. The act of segmenting IS the skill.
+
+    Edit the responses below as you refine your pitch to each audience.
+  */
+  const segmenterCopy = {
+    recruiter: {
+      text: "If you're hiring for an AE, RevOps, or AI-fluent operator role — I'd love a call this week.",
+      cta: "Email me with the role and a time"
+    },
+    founder: {
+      text: "If you're early and need someone who can close deals AND build the tools the team will run on — that's the bridge I am.",
+      cta: "Email me with what you're building"
+    },
+    investor: {
+      text: "I'm not raising. But I'm always down to compare market views and trade theses.",
+      cta: "DM me on LinkedIn — bring a take"
+    },
+    friend: {
+      text: "Surf at Pass-a-Grille this weekend? Bring snacks.",
+      cta: "You already have my number"
+    }
+  };
+
+  const respText = document.getElementById('respText');
+  const respCta = document.getElementById('respCta');
+  const segPills = document.querySelectorAll('.seg-pill');
+
+  segPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      const seg = pill.dataset.seg;
+      const copy = segmenterCopy[seg];
+
+      // Update active state
+      segPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      // Fade out then in to feel intentional
+      respText.classList.remove('visible');
+      respCta.classList.remove('visible');
+      setTimeout(() => {
+        respText.innerHTML = copy.text.replace(/AE|RevOps|AI-fluent operator|bridge I am|trade theses|Pass-a-Grille/g,
+          m => `<span class="italic">${m}</span>`);
+        respCta.textContent = '→ ' + copy.cta;
+        respText.classList.add('visible');
+        setTimeout(() => respCta.classList.add('visible'), 200);
+      }, 200);
+    });
+  });
 
   // === INTERACTIVE WATER CANVAS ===
   const canvas = document.getElementById('waterCanvas');
