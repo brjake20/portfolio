@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>[Your Name] — Closing today. Building tomorrow.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" as="video" href="portfolio_background.mp4" type="video/mp4">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --bg-2: #111114;
+    --fg: #f5f3ee;
+    --fg-dim: #a8a59c;
+    --fg-mute: #4a4944;
+    --accent: #e8d5a0;
+    --accent-warm: #d97757;
+    --line: rgba(245, 243, 238, 0.12);
+    --display: 'Fraunces', serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body { font-family: var(--body); font-weight: 300; line-height: 1.6; overflow-x: hidden; cursor: none; }
+
+  /* =========================================================
+     CINEMATIC SCROLL ARCHITECTURE
+     The 15s portfolio_background.mp4 is scrubbed across 1000vh.
+     Each viewport of scroll = ~1.5 seconds of video time.
+     =========================================================
+
+     Video timeline (mapped to scroll progress 0 → 1):
+       0-3s deck (0.00 - 0.20)      → HERO
+       3-7s beach + people (0.20 - 0.47) → CLAIM
+       7-10s tube wave (0.47 - 0.67)     → WORK CARDS
+       10-13s breakthrough (0.67 - 0.87) → "What's next?"
+       13-15s horizon (0.87 - 1.00)      → ASK / contact
+  */
+  .scrub-spacer { height: 1000vh; position: relative; z-index: 1; }
+
+  .stage {
+    position: fixed; inset: 0; z-index: 0;
+    overflow: hidden; background: #000;
+  }
+  .scrub-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    will-change: transform;
+  }
+
+  /* === LOADER (shown until the video has buffered enough to scrub) === */
+  .loader {
+    position: fixed; inset: 0;
+    background: #000; z-index: 9998;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1.5rem;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  .loader.hidden { opacity: 0; visibility: hidden; }
+  .loader-mark {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: 1.8rem;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .loader-bar {
+    width: 200px; height: 1px;
+    background: rgba(232, 213, 160, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .loader-bar::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--accent);
+    transform-origin: left;
+    animation: loaderBar 1.4s ease-in-out infinite;
+  }
+  @keyframes loaderBar {
+    0% { transform: scaleX(0); }
+    50% { transform: scaleX(1); }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  /* === INTERACTIVE WATER (overlays the final segment) === */
+  .water-stage {
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none;
+    z-index: 2;
+    mix-blend-mode: screen;
+    will-change: opacity;
+  }
+  .water-stage.active { pointer-events: auto; }
+  .water-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* === Vignette + grain === */
+  .stage::after {
+    content: ''; position: absolute; inset: 0;
+    pointer-events: none; z-index: 3;
+    background:
+      radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.45) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.25) 100%);
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    pointer-events: none; z-index: 200; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* === Cursor === */
+  .cursor-dot, .cursor-ring {
+    position: fixed; pointer-events: none; z-index: 9999;
+    border-radius: 50%; top: 0; left: 0;
+    transform: translate(-50%, -50%); will-change: transform;
+  }
+  .cursor-dot { width: 6px; height: 6px; background: var(--accent); transition: width 0.2s, height 0.2s; }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(255,255,255,0.6);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+  }
+  body.hovering .cursor-dot { width: 0; height: 0; }
+  body.hovering .cursor-ring { width: 60px; height: 60px; border-color: var(--accent); }
+
+  /* === Nav === */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 1.5rem 3rem; z-index: 50;
+    display: flex; justify-content: space-between; align-items: center;
+    mix-blend-mode: difference;
+  }
+  .logo {
+    font-family: var(--display); font-weight: 400;
+    font-size: 1.4rem; font-style: italic; letter-spacing: -0.02em;
+    color: #fff;
+  }
+  .nav-tagline {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: #fff; opacity: 0.7;
+  }
+
+  /* =========================================================
+     ACT 1 — HERO (0-3s: the deck)
+     ========================================================= */
+  .frame-hero {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 3rem 6rem;
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+  }
+  .hero-meta {
+    position: absolute; top: 5rem; left: 3rem; right: 3rem;
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .frame-hero h1 {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(3rem, 10vw, 10rem);
+    line-height: 0.95; letter-spacing: -0.04em;
+    color: #fff;
+    text-shadow: 0 4px 40px rgba(0,0,0,0.5);
+  }
+  .frame-hero h1 .italic { font-style: italic; color: var(--accent); }
+  .frame-hero h1 .word { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .frame-hero h1 .word span {
+    display: inline-block; transform: translateY(110%);
+    animation: reveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .frame-hero h1 .word:nth-child(1) span { animation-delay: 0.6s; }
+  .frame-hero h1 .word:nth-child(2) span { animation-delay: 0.85s; }
+  .hero-sub {
+    margin-top: 2rem;
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1rem, 1.4vw, 1.3rem);
+    color: rgba(255,255,255,0.9);
+    max-width: 540px;
+    line-height: 1.4;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+    opacity: 0;
+    animation: fadeIn 1s ease 1.5s forwards;
+  }
+  @keyframes reveal { to { transform: translateY(0); } }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .scroll-cue {
+    position: absolute; bottom: 2rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.85);
+    display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+    opacity: 0;
+    animation: fadeIn 1s ease 2s forwards;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  .scroll-cue::after {
+    content: ''; width: 1px; height: 40px;
+    background: rgba(255,255,255,0.7);
+    animation: scrollLine 2s ease-in-out infinite;
+    transform-origin: top;
+  }
+  @keyframes scrollLine {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+
+  /* =========================================================
+     ACT 2 — CLAIM (3-7s: beach with people)
+     ========================================================= */
+  .frame-claim {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3rem;
+    pointer-events: none; opacity: 0;
+    will-change: opacity, transform;
+  }
+  .claim-text {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.2; letter-spacing: -0.02em;
+    color: #fff;
+    text-shadow: 0 6px 40px rgba(0,0,0,0.7);
+    text-align: center;
+    max-width: 1100px;
+  }
+  .claim-text .accent { color: var(--accent); font-style: italic; }
+  .claim-eyebrow {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  /* =========================================================
+     ACT 3 — WORK CARDS (7-10s: inside the tube wave)
+     The cards float around the surfer's position in the barrel.
+     ========================================================= */
+  .frame-work {
+    position: fixed; inset: 0; z-index: 5;
+    pointer-events: none; opacity: 0;
+    will-change: opacity;
+  }
+  .frame-work.active { pointer-events: auto; }
+  .work-card {
+    position: absolute;
+    background: rgba(8, 18, 28, 0.65);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 1.5rem 1.75rem;
+    text-decoration: none;
+    color: #fff;
+    cursor: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
+    will-change: transform;
+    width: 260px;
+    border-radius: 4px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+  }
+  .work-card:hover {
+    background: rgba(232, 213, 160, 0.15);
+    border-color: var(--accent);
+    transform: scale(1.04) translateY(-4px) !important;
+  }
+  .work-card .num {
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .work-card .title {
+    font-family: var(--display); font-weight: 300;
+    font-size: 1.4rem; line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+  }
+  .work-card .title .italic { font-style: italic; }
+  .work-card .desc {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+  .work-card .link {
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; gap: 0.5rem;
+    transition: color 0.3s;
+  }
+  .work-card:hover .link { color: var(--accent); }
+  .work-card.w1 { top: 14%; left: 6%; animation: floatA 6s ease-in-out infinite; }
+  .work-card.w2 { top: 12%; right: 6%; animation: floatA 7s ease-in-out -1.5s infinite; }
+  .work-card.w3 { bottom: 20%; left: 8%; animation: floatA 6.5s ease-in-out -3s infinite; }
+  .work-card.w4 { bottom: 22%; right: 8%; animation: floatA 5.5s ease-in-out -2s infinite; }
+  @keyframes floatA {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .work-eyebrow {
+    position: absolute;
+    top: 6rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: var(--accent);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+
+  /* =========================================================
+     ACT 4 — "WHAT'S NEXT?" (10-13s: breakthrough)
+     The pivot beat between work and ask.
+     ========================================================= */
+  .frame-pivot {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0;
+    will-change: opacity, transform;
+  }
+  .pivot-text {
+    font-family: var(--display); font-weight: 300;
+    font-style: italic;
+    font-size: clamp(3rem, 9vw, 8rem);
+    line-height: 1; letter-spacing: -0.03em;
+    color: #fff;
+    text-shadow: 0 6px 50px rgba(0,0,0,0.6);
+    text-align: center;
+  }
+  .pivot-text .accent { color: var(--accent); }
+
+  /* =========================================================
+     ACT 5 — ASK (13-15s: open ocean / horizon)
+     ========================================================= */
+  .frame-ask {
+    position: fixed; inset: 0; z-index: 6;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 0 3rem;
+    pointer-events: none; opacity: 0;
+    will-change: opacity, transform;
+  }
+  .frame-ask.active { pointer-events: auto; }
+  .ask-eyebrow {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .ask-invitations {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+  .ask-invitations p {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(1.4rem, 2.8vw, 2.3rem);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+    margin-bottom: 0.5rem;
+  }
+  .ask-invitations p .italic { font-style: italic; color: var(--accent); }
+  .ask-invitations p:last-child { margin-bottom: 0; }
+  .contact-grid {
+    display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    pointer-events: auto;
+  }
+  .contact-pill {
+    padding: 1rem 2rem;
+    background: rgba(8, 18, 28, 0.5);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; text-decoration: none;
+    font-family: var(--mono); font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    display: flex; align-items: center; gap: 0.75rem;
+    transition: background 0.3s, transform 0.3s, border-color 0.3s;
+    cursor: none;
+    border-radius: 2px;
+  }
+  .contact-pill:hover {
+    background: rgba(232, 213, 160, 0.25);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .contact-pill .arrow { transition: transform 0.3s; }
+  .contact-pill:hover .arrow { transform: translate(3px, -3px); }
+  .scroll-down-cue {
+    position: absolute;
+    bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.85);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .scroll-down-cue::after {
+    content: ''; width: 1px; height: 24px;
+    background: rgba(255,255,255,0.7);
+    animation: scrollLine 2s ease-in-out infinite;
+    transform-origin: top;
+  }
+
+  /* =========================================================
+     CONTENT SECTIONS (below the cinematic)
+     ========================================================= */
+  .content { position: relative; z-index: 5; background: var(--bg); }
+
+  /* === RECEIPTS GRID === */
+  .receipts-section { padding: 10rem 3rem 8rem; position: relative; }
+  .section-eyebrow {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+    line-height: 1; letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+    max-width: 900px;
+  }
+  .section-title .italic { font-style: italic; color: var(--accent); }
+  .section-subtitle {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+    color: var(--fg-dim);
+    max-width: 600px;
+    margin-bottom: 5rem;
+  }
+  .receipts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .receipt-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s, background 0.4s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: none;
+    min-height: 280px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .receipt-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .receipt-card:hover {
+    background: linear-gradient(180deg, rgba(232,213,160,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border-color: rgba(232, 213, 160, 0.3);
+    transform: translateY(-4px);
+  }
+  .receipt-card:hover::before { opacity: 1; }
+  .receipt-card .index {
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .receipt-card .index::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    display: inline-block;
+  }
+  .receipt-card .category {
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--fg-mute);
+    margin-bottom: 1.5rem;
+  }
+  .receipt-card .big-num {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(3.5rem, 6vw, 5.5rem);
+    line-height: 0.9; letter-spacing: -0.04em;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+  .receipt-card .big-num .unit {
+    font-size: 0.4em; color: var(--accent);
+    font-style: italic; letter-spacing: -0.02em;
+  }
+  .receipt-card .label {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1rem, 1.3vw, 1.2rem);
+    color: rgba(255,255,255,0.95);
+    line-height: 1.4; margin-bottom: 0.75rem;
+  }
+  .receipt-card .context {
+    font-family: var(--mono); font-size: 0.65rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--fg-dim);
+  }
+
+  /* === VOICE + TASTE TRIPTYCH === */
+  .triptych-section { padding: 8rem 3rem 10rem; position: relative; }
+  .triptych {
+    display: grid;
+    grid-template-columns: 1fr 2.2fr 1fr;
+    gap: 1.5rem; align-items: center;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .reel {
+    aspect-ratio: 9 / 16;
+    background: rgba(15, 25, 30, 0.85);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    position: relative; overflow: hidden;
+    cursor: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+  }
+  .reel:hover { transform: scale(1.03) translateY(-6px); border-color: rgba(232, 213, 160, 0.4); }
+  .reel-placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.4);
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    text-align: center; padding: 1rem;
+    z-index: 1;
+  }
+  .reel.surf .reel-placeholder { background: linear-gradient(180deg, #3a7a9a 0%, #1a4a6a 50%, #0a2a4a 100%); }
+  .reel.snow .reel-placeholder { background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%); }
+  .reel-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7) 100%);
+    z-index: 2; pointer-events: none;
+  }
+  .reel-meta {
+    position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
+    z-index: 3;
+  }
+  .reel-tag {
+    font-family: var(--mono); font-size: 0.55rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .reel-title {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+    color: #fff; letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .reel-play-icon {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 1.5px solid rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .reel:hover .reel-play-icon {
+    transform: translate(-50%, -50%) scale(1.15);
+    background: rgba(232, 213, 160, 0.3);
+    border-color: var(--accent);
+  }
+  .reel-play-icon::after {
+    content: '';
+    width: 0; height: 0;
+    border-left: 11px solid #fff;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    margin-left: 3px;
+  }
+  .loom-card {
+    aspect-ratio: 16 / 10;
+    background: rgba(15, 25, 30, 0.85);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    position: relative; overflow: hidden;
+    cursor: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+  }
+  .loom-card:hover { transform: scale(1.02) translateY(-4px); border-color: rgba(232, 213, 160, 0.4); }
+  .loom-placeholder {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(232,213,160,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(217,119,87,0.08) 0%, transparent 50%),
+      linear-gradient(135deg, #0d2a3a 0%, #1a3a4a 50%, #0d2a3a 100%);
+    z-index: 1;
+  }
+  .loom-overlay {
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 2rem;
+  }
+  .loom-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .loom-tag {
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--accent);
+  }
+  .loom-duration {
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.7);
+    padding: 0.35rem 0.65rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 2px;
+  }
+  .loom-play-btn {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .loom-card:hover .loom-play-btn {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(232,213,160,0.3);
+  }
+  .loom-play-btn::after {
+    content: '';
+    width: 0; height: 0;
+    border-left: 22px solid var(--accent);
+    border-top: 14px solid transparent;
+    border-bottom: 14px solid transparent;
+    margin-left: 5px;
+  }
+  .loom-bottom { z-index: 3; }
+  .loom-bottom .loom-title {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    line-height: 1.15; letter-spacing: -0.02em;
+    color: #fff; margin-bottom: 0.5rem;
+  }
+  .loom-bottom .loom-title .italic { font-style: italic; color: var(--accent); }
+  .loom-bottom .loom-sub {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(0.85rem, 1.1vw, 1rem);
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* === FOOTER === */
+  .site-footer {
+    padding: 3rem; border-top: 1px solid var(--line);
+    text-align: center;
+  }
+  .footer-tagline {
+    font-family: var(--display); font-style: italic;
+    font-size: clamp(1rem, 1.4vw, 1.3rem);
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 0.75rem;
+  }
+  .footer-copyright {
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--fg-mute);
+  }
+
+  /* === Mobile === */
+  @media (max-width: 900px) {
+    .receipts-grid { grid-template-columns: 1fr 1fr; }
+    .triptych { grid-template-columns: 1fr; gap: 1rem; max-width: 360px; }
+    .reel { max-width: 280px; margin: 0 auto; }
+  }
+  @media (max-width: 768px) {
+    body { cursor: auto; }
+    .cursor-dot, .cursor-ring { display: none; }
+    nav { padding: 1rem 1.5rem; }
+    .nav-tagline { display: none; }
+    .frame-hero { padding: 0 1.5rem 4rem; }
+    .hero-meta { left: 1.5rem; right: 1.5rem; top: 4rem; font-size: 0.6rem; }
+    .frame-claim, .frame-pivot, .frame-ask { padding: 0 1.5rem; }
+    .work-card { width: 200px; padding: 1rem 1.25rem; }
+    .work-card.w1 { top: 16%; left: 3%; }
+    .work-card.w2 { top: 16%; right: 3%; }
+    .work-card.w3 { bottom: 18%; left: 3%; }
+    .work-card.w4 { bottom: 18%; right: 3%; }
+    .work-card .title { font-size: 1.1rem; }
+    .work-card .desc { font-size: 0.75rem; }
+    .receipts-section { padding: 6rem 1.5rem 5rem; }
+    .receipts-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .receipt-card { padding: 2rem 1.5rem; min-height: 240px; }
+    .triptych-section { padding: 5rem 1.5rem 6rem; }
+    .contact-grid { gap: 0.5rem; }
+    .contact-pill { padding: 0.75rem 1.25rem; font-size: 0.65rem; }
+  }
+  @media (max-width: 500px) {
+    .receipts-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loader covers the screen until the video has buffered enough to scrub smoothly -->
+<div class="loader" id="loader">
+  <div class="loader-mark">setting the scene</div>
+  <div class="loader-bar"></div>
+</div>
+
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- ============ FIXED CINEMATIC STAGE ============ -->
+<div class="stage" id="stage">
+  <video
+    class="scrub-video"
+    id="scrubVideo"
+    src="portfolio_background.mp4"
+    muted
+    playsinline
+    preload="auto"
+    crossorigin="anonymous"
+    disablepictureinpicture
+    disableremoteplayback
+  ></video>
+  <div class="water-stage" id="waterStage">
+    <canvas class="water-canvas" id="waterCanvas"></canvas>
+  </div>
+</div>
+
+<!-- ====== ACT 1: HERO (0-3s, the deck) ====== -->
+<div class="frame-hero" id="frameHero">
+  <div class="hero-meta">
+    <span>Portfolio / 2026</span>
+    <span>St. Petersburg, FL</span>
+  </div>
+  <h1>
+    <span class="word"><span>Closing today.</span></span><br>
+    <span class="word"><span class="italic">Building tomorrow.</span></span>
+  </h1>
+  <div class="hero-sub">A top closer who envisions the future and actively builds it.</div>
+  <div class="scroll-cue">Scroll to begin</div>
+</div>
+
+<!-- ====== ACT 2: CLAIM (3-7s, beach with people) ====== -->
+<div class="frame-claim" id="frameClaim">
+  <div>
+    <div class="claim-eyebrow">Why I'm here</div>
+    <div class="claim-text">
+      Top 1% closer. <span class="accent">MIT-trained</span> in applied data science.<br>
+      I bring AI into businesses that haven't caught up yet.
+    </div>
+  </div>
+</div>
+
+<!-- ====== ACT 3: WORK CARDS (7-10s, inside the tube wave) ====== -->
+<div class="frame-work" id="frameWork">
+  <div class="work-eyebrow">In the barrel · what I'm building</div>
+  <a href="https://github.com/brprojects-ctrl/Custom-CRM-Build" target="_blank" rel="noopener" class="work-card w1">
+    <div class="num">01 / Product</div>
+    <div class="title">CRM SaaS <span class="italic">Prototype</span></div>
+    <div class="desc">Production-grade workflow platform with guided scripts and operational dashboards.</div>
+    <div class="link">GitHub <span>↗</span></div>
+  </a>
+  <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="work-card w2">
+    <div class="num">02 / Code</div>
+    <div class="title">Autonomous <span class="italic">Trading Bots</span></div>
+    <div class="desc">RSI, MACD, EMA, VWAP signal logic with risk management and paper-trading sims. Python.</div>
+    <div class="link">GitHub <span>↗</span></div>
+  </a>
+  <a href="#" class="work-card w3">
+    <div class="num">03 / AI</div>
+    <div class="title">Sales Forecasting <span class="italic">Neural Net</span></div>
+    <div class="desc">MIT Applied Data Science capstone. Predictive model for sales conversion.</div>
+    <div class="link">Rebuilding ↗</div>
+  </a>
+  <a href="https://website-stuff-puce.vercel.app/" target="_blank" rel="noopener" class="work-card w4">
+    <div class="num">04 / Web</div>
+    <div class="title">Modern <span class="italic">POS Site</span></div>
+    <div class="desc">Designed and built the workflow + UI. Connected directly to Square POS.</div>
+    <div class="link">Live site ↗</div>
+  </a>
+</div>
+
+<!-- ====== ACT 4: PIVOT (10-13s, breakthrough into open ocean) ====== -->
+<div class="frame-pivot" id="framePivot">
+  <div class="pivot-text">What's <span class="accent">next?</span></div>
+</div>
+
+<!-- ====== ACT 5: ASK (13-15s, horizon) ====== -->
+<div class="frame-ask" id="frameAsk">
+  <div class="ask-eyebrow">The horizon</div>
+  <div class="ask-invitations">
+    <p>Hiring an <span class="italic">AI-fluent operator?</span></p>
+    <p>Building a startup that needs <span class="italic">a bridge?</span></p>
+    <p>Want to partner on <span class="italic">something weird?</span></p>
+  </div>
+  <div class="contact-grid">
+    <a href="mailto:you@email.com" class="contact-pill"><span>Email</span><span class="arrow">↗</span></a>
+    <a href="#" class="contact-pill"><span>LinkedIn</span><span class="arrow">↗</span></a>
+    <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="contact-pill"><span>GitHub</span><span class="arrow">↗</span></a>
+    <a href="#" class="contact-pill"><span>Instagram</span><span class="arrow">↗</span></a>
+  </div>
+  <div class="scroll-down-cue">More below</div>
+</div>
+
+<nav>
+  <div class="logo">[Your Name]</div>
+  <div class="nav-tagline">Closing · Building</div>
+</nav>
+
+<!-- The 15s video plays across this scroll length -->
+<div class="scrub-spacer"></div>
+
+<!-- ============ CONTENT BELOW CINEMATIC ============ -->
+<div class="content">
+
+  <!-- ====== RECEIPTS GRID ====== -->
+  <section class="receipts-section" id="receipts">
+    <div class="section-eyebrow">The receipts</div>
+    <h2 class="section-title">Numbers that <span class="italic">stack up.</span></h2>
+    <p class="section-subtitle">Volume, conversion, dollars, credentials, and self-directed work — what the resume actually says.</p>
+
+    <div class="receipts-grid">
+      <div class="receipt-card">
+        <div>
+          <div class="index">01</div>
+          <div class="category">Sales / Volume</div>
+        </div>
+        <div>
+          <div class="big-num">100<span class="unit">/mo</span></div>
+          <div class="label">Sales in a single month at Assurance IQ.</div>
+          <div class="context">Top 6% of 500+ reps</div>
+        </div>
+      </div>
+
+      <div class="receipt-card">
+        <div>
+          <div class="index">02</div>
+          <div class="category">Sales / Conversion</div>
+        </div>
+        <div>
+          <div class="big-num">34<span class="unit">%</span></div>
+          <div class="label">Conversion rate. The company averaged 16.</div>
+          <div class="context">Top-ranked agent</div>
+        </div>
+      </div>
+
+      <div class="receipt-card">
+        <div>
+          <div class="index">03</div>
+          <div class="category">Sales / Dollars</div>
+        </div>
+        <div>
+          <div class="big-num">$60K</div>
+          <div class="label">Commission in two weeks. 4.5× the team's system size.</div>
+          <div class="context">Malama Solar, Honolulu</div>
+        </div>
+      </div>
+
+      <div class="receipt-card">
+        <div>
+          <div class="index">04</div>
+          <div class="category">Credential / AI</div>
+        </div>
+        <div>
+          <div class="big-num">MIT</div>
+          <div class="label">Applied Data Science. Capstone in neural networks for sales forecasting.</div>
+          <div class="context">2022</div>
+        </div>
+      </div>
+
+      <div class="receipt-card">
+        <div>
+          <div class="index">05</div>
+          <div class="category">Self-directed / Markets</div>
+        </div>
+        <div>
+          <div class="big-num">300<span class="unit">+</span></div>
+          <div class="label">Assets in a portfolio I built and rebalance quarterly.</div>
+          <div class="context">Crypto, equities, alternatives</div>
+        </div>
+      </div>
+
+      <div class="receipt-card">
+        <div>
+          <div class="index">06</div>
+          <div class="category">Self-directed / Community</div>
+        </div>
+        <div>
+          <div class="big-num">18</div>
+          <div class="label">Investors in my group chat. Daily trades, theses, macro reads.</div>
+          <div class="context">Built and led since 2017</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== VOICE + TASTE TRIPTYCH ====== -->
+  <section class="triptych-section" id="voice">
+    <div class="section-eyebrow">In my own words. And in my own eye.</div>
+    <h2 class="section-title">Sixty seconds, <span class="italic">no script.</span></h2>
+    <p class="section-subtitle">The bridge thesis in plain language — flanked by what I shoot when I'm not closing.</p>
+
+    <div class="triptych">
+
+      <!-- Left reel: Surf -->
+      <div class="reel surf">
+        <div class="reel-placeholder">[ Surf reel<br>15s iOS vertical ]</div>
+        <div class="reel-overlay"></div>
+        <div class="reel-play-icon"></div>
+        <div class="reel-meta">
+          <div class="reel-tag">Surf · 15s</div>
+          <div class="reel-title">Saltwater</div>
+        </div>
+      </div>
+
+      <!-- Center: Loom -->
+      <div class="loom-card">
+        <div class="loom-placeholder"></div>
+        <div class="loom-overlay">
+          <div class="loom-top">
+            <div class="loom-tag">Loom · In my own words</div>
+            <div class="loom-duration">60s</div>
+          </div>
+          <div class="loom-bottom">
+            <div class="loom-title">The <span class="italic">bridge</span> — explained.</div>
+            <div class="loom-sub">No slides, no script. Just me to camera.</div>
+          </div>
+        </div>
+        <div class="loom-play-btn"></div>
+      </div>
+
+      <!-- Right reel: Snow -->
+      <div class="reel snow">
+        <div class="reel-placeholder">[ Snow reel<br>15s iOS vertical ]</div>
+        <div class="reel-overlay"></div>
+        <div class="reel-play-icon"></div>
+        <div class="reel-meta">
+          <div class="reel-tag">Snow · 15s</div>
+          <div class="reel-title">Cold lines</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-tagline">Closing today. Building tomorrow.</div>
+    <div class="footer-copyright">© 2026 [Your Name]</div>
+  </footer>
+
+</div>
+
+<script>
+  // === CURSOR ===
+  const dot = document.querySelector('.cursor-dot');
+  const ring = document.querySelector('.cursor-ring');
+  let mx = innerWidth/2, my = innerHeight/2, rx = mx, ry = my;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = `translate(${mx}px,${my}px) translate(-50%,-50%)`;
+  });
+  (function cursorLoop() {
+    rx += (mx - rx) * 0.15;
+    ry += (my - ry) * 0.15;
+    ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
+    requestAnimationFrame(cursorLoop);
+  })();
+  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card').forEach(el => {
+    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+  });
+
+  // === VIDEO + SCROLL SCRUB ENGINE ===
+  /*
+    The 15s portfolio_background.mp4 is scrubbed across 1000vh of scroll.
+    requestAnimationFrame smoothly eases video.currentTime toward the
+    scroll-derived target time — that's what makes the scrub feel buttery
+    instead of step-jumping on every scroll event.
+
+    Content overlays are choreographed against scroll progress (0 → 1):
+      0.00 - 0.20  HERO         (deck)
+      0.20 - 0.47  CLAIM        (beach + people)
+      0.47 - 0.67  WORK CARDS   (tube wave)
+      0.67 - 0.87  PIVOT        (breakthrough → "What's next?")
+      0.87 - 1.00  ASK          (horizon)
+  */
+
+  const video = document.getElementById('scrubVideo');
+  const stage = document.getElementById('stage');
+  const waterStage = document.getElementById('waterStage');
+  const loader = document.getElementById('loader');
+
+  const frames = {
+    hero: document.getElementById('frameHero'),
+    claim: document.getElementById('frameClaim'),
+    work: document.getElementById('frameWork'),
+    pivot: document.getElementById('framePivot'),
+    ask: document.getElementById('frameAsk'),
+  };
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const mapRange = (v, inMin, inMax, outMin, outMax) =>
+    lerp(outMin, outMax, clamp((v - inMin) / (inMax - inMin), 0, 1));
+  const fadeFrame = (progress, inStart, inEnd, outStart, outEnd) => {
+    const fadeIn = mapRange(progress, inStart, inEnd, 0, 1);
+    const fadeOut = mapRange(progress, outStart, outEnd, 1, 0);
+    return Math.min(fadeIn, fadeOut);
+  };
+
+  // Hide loader once the video can play through
+  let videoReady = false;
+  function markReady() {
+    if (videoReady) return;
+    videoReady = true;
+    loader.classList.add('hidden');
+    setTimeout(() => loader.style.display = 'none', 800);
+  }
+  video.addEventListener('canplaythrough', markReady);
+  video.addEventListener('loadeddata', () => {
+    // Fallback: if canplaythrough never fires (slow connection), force ready after 3s
+    setTimeout(markReady, 3000);
+  });
+  // Hard fallback: never block forever
+  setTimeout(markReady, 8000);
+
+  let targetTime = 0, currentVideoTime = 0;
+  function scrubLoop() {
+    if (videoReady) {
+      currentVideoTime += (targetTime - currentVideoTime) * 0.1;
+      try { video.currentTime = currentVideoTime; } catch (e) {}
+    }
+    requestAnimationFrame(scrubLoop);
+  }
+  scrubLoop();
+
+  function onScroll() {
+    const spacer = document.querySelector('.scrub-spacer');
+    const scrolled = window.scrollY - spacer.offsetTop;
+    const progress = clamp(scrolled / (spacer.offsetHeight - innerHeight), 0, 1);
+
+    // RELEASE: once the scrub is done, hide every cinematic element so the
+    // sections below own the viewport cleanly. No leaking overlays.
+    const releasePoint = spacer.offsetTop + spacer.offsetHeight - innerHeight;
+    const isReleased = window.scrollY >= releasePoint;
+    if (isReleased) {
+      stage.style.display = 'none';
+      Object.values(frames).forEach(f => f.style.display = 'none');
+      frames.work.classList.remove('active');
+      frames.ask.classList.remove('active');
+      waterStage.classList.remove('active');
+      return;
+    } else {
+      stage.style.display = '';
+      Object.values(frames).forEach(f => f.style.display = '');
+    }
+
+    // Drive the video
+    targetTime = progress * (video.duration || 15);
+
+    // === ACT 1: HERO (0.00 - 0.20) ===
+    frames.hero.style.opacity = mapRange(progress, 0.13, 0.20, 1, 0);
+    frames.hero.style.transform = `translateY(${mapRange(progress, 0, 0.20, 0, 180)}px)`;
+    frames.hero.style.filter = `blur(${mapRange(progress, 0.13, 0.20, 0, 8)}px)`;
+
+    // === ACT 2: CLAIM (0.20 - 0.47) ===
+    frames.claim.style.opacity = fadeFrame(progress, 0.22, 0.28, 0.42, 0.47);
+    frames.claim.style.transform =
+      `translateY(${mapRange(progress, 0.22, 0.28, 30, 0)}px) scale(${mapRange(progress, 0.22, 0.28, 0.96, 1)})`;
+
+    // === ACT 3: WORK CARDS (0.47 - 0.67) ===
+    const workOp = fadeFrame(progress, 0.48, 0.54, 0.63, 0.67);
+    frames.work.style.opacity = workOp;
+    if (workOp > 0.5) frames.work.classList.add('active');
+    else frames.work.classList.remove('active');
+
+    // === ACT 4: PIVOT (0.67 - 0.87) ===
+    frames.pivot.style.opacity = fadeFrame(progress, 0.68, 0.74, 0.82, 0.87);
+    frames.pivot.style.transform = `scale(${mapRange(progress, 0.68, 0.78, 0.92, 1)})`;
+
+    // === ACT 5: ASK (0.87 - 1.00) ===
+    const askOp = fadeFrame(progress, 0.88, 0.94, 0.985, 1.0);
+    frames.ask.style.opacity = askOp;
+    frames.ask.style.transform = `translateY(${mapRange(progress, 0.88, 0.94, 30, 0)}px)`;
+    if (askOp > 0.5) frames.ask.classList.add('active');
+    else frames.ask.classList.remove('active');
+
+    // === WATER ripples — appear only during ASK section ===
+    const waterOp = fadeFrame(progress, 0.86, 0.93, 0.985, 1.0);
+    waterStage.style.opacity = waterOp;
+    if (progress > 0.9 && progress < 0.985) waterStage.classList.add('active');
+    else waterStage.classList.remove('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  onScroll();
+
+  // === INTERACTIVE WATER CANVAS ===
+  const canvas = document.getElementById('waterCanvas');
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    canvas.style.width = innerWidth + 'px';
+    canvas.style.height = innerHeight + 'px';
+    ctx.scale(dpr, dpr);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const ripples = [];
+  let lastRippleTime = 0;
+  waterStage.addEventListener('mousemove', e => {
+    const now = performance.now();
+    if (now - lastRippleTime < 50) return;
+    lastRippleTime = now;
+    ripples.push({ x: e.clientX, y: e.clientY, radius: 0, maxRadius: 280, strength: 1, age: 0 });
+    if (ripples.length > 24) ripples.shift();
+  });
+  waterStage.addEventListener('click', e => {
+    ripples.push({ x: e.clientX, y: e.clientY, radius: 0, maxRadius: 500, strength: 2, age: 0 });
+  });
+
+  let t = 0;
+  function waterFrame() {
+    t += 0.012;
+    const width = innerWidth, height = innerHeight;
+    ctx.clearRect(0, 0, width, height);
+
+    // Subtle band overlay — adds shimmer to the video, doesn't paint over it
+    ctx.lineWidth = 1;
+    const bands = 50;
+    for (let i = 0; i < bands; i++) {
+      const yBase = (i / bands) * height;
+      const amp = 3 + (i / bands) * 5;
+      const freq = 0.008 + (i % 3) * 0.002;
+      const phase = t * (1 + (i % 4) * 0.2) + i * 0.4;
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(220, 240, 255, ${0.03 + (i / bands) * 0.05})`;
+      for (let x = 0; x <= width; x += 6) {
+        let y = yBase + Math.sin(x * freq + phase) * amp;
+        for (const r of ripples) {
+          const dx = x - r.x;
+          const dy = yBase - r.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < r.radius + 60 && dist > r.radius - 60) {
+            const wave = Math.cos((dist - r.radius) * 0.08) * r.strength * 18 * (1 - r.age / 1.6);
+            y += wave;
+          }
+        }
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.radius += 4;
+      r.age += 0.018;
+      r.strength *= 0.985;
+      if (r.radius > r.maxRadius || r.strength < 0.05) ripples.splice(i, 1);
+    }
+    for (const r of ripples) {
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(220, 240, 255, ${r.strength * 0.25})`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(waterFrame);
+  }
+  waterFrame();
+</script>
+
+</body>
+</html>

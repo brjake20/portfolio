@@ -1,0 +1,27 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node / build artifacts (in case you add tooling later)
+node_modules/
+dist/
+build/
+*.log
+
+# Environment files (in case you ever add secrets)
+.env
+.env.local
+.env.*.local
+
+# OS thumbnail caches
+Thumbs.db
+ehthumbs.db
