@@ -1059,7 +1059,12 @@
   let targetTime = 0, currentVideoTime = 0;
   function scrubLoop() {
     if (videoReady) {
-      currentVideoTime += (targetTime - currentVideoTime) * 0.1;
+      // Lerp factor 0.25 — tighter than the previous 0.1 because every frame
+      // is now an independent keyframe (encoded with -g 1). The video can seek
+      // to any frame instantly, so we don't need heavy smoothing to mask seek
+      // latency. Lower values = smoother but laggier. Try 0.4 for snappier, or
+      // 0.15 for more cinematic ease. Direct assignment (no lerp) also works.
+      currentVideoTime += (targetTime - currentVideoTime) * 0.25;
       try { video.currentTime = currentVideoTime; } catch (e) {}
     }
     requestAnimationFrame(scrubLoop);
