@@ -185,6 +185,18 @@
     margin-top: 1rem;
   }
 
+  /* The UCF UpStarts beat — longer institution name needs scaled-down size */
+  .cine-beat[data-beat="4"] .cine-num {
+    font-size: clamp(3rem, 8vw, 7rem);
+    letter-spacing: -0.03em;
+  }
+  .cine-beat[data-beat="4"] .cine-label {
+    margin-top: 1.25rem;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   /* Ambient ticker — the leftover receipts subtly along the bottom */
   .beach-ticker {
     position: fixed;
@@ -581,7 +593,18 @@
     text-shadow: 0 4px 40px rgba(0,0,0,0.5);
   }
   .frame-hero h1 .italic { font-style: italic; color: var(--accent); }
-  .frame-hero h1 .word { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .frame-hero h1 .word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    /* Give the overflow box room for descenders (g, y, p, j, q).
+       Fraunces italic in particular has prominent descenders that get
+       clipped without this. We compensate with negative margin-bottom
+       so the visual line spacing stays tight. */
+    padding-bottom: 0.18em;
+    margin-bottom: -0.18em;
+    line-height: 1;
+  }
   .frame-hero h1 .word span {
     display: inline-block; transform: translateY(110%);
     animation: reveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1226,13 +1249,20 @@
     </div>
   </div>
 
+  <!-- Beat 5: UCF UpStarts — the founder/VC track -->
+  <div class="cine-beat" data-beat="4">
+    <div class="cine-num">UCF UpStarts</div>
+    <div class="cine-label">Selective venture incubator. VC-mentored. Built pitch decks for investors.</div>
+    <div class="cine-context">~5 admitted per semester</div>
+  </div>
+
 </div>
 
 <!-- Ambient ticker — leftover receipts subtly along the bottom of the beach -->
 <div class="beach-ticker" id="beachTicker">
   <div class="tk-item"><span><span class="tk-num">300+</span> assets self-managed</span></div>
-  <div class="tk-item"><span><span class="tk-num">18</span>-person investor group I lead</span></div>
-  <div class="tk-item"><span>Since <span class="tk-num">2017</span></span></div>
+  <div class="tk-item"><span><span class="tk-num">18</span>-person investor group, since 2017</span></div>
+  <div class="tk-item"><span>Founded FL's first university <span class="tk-num">BTC</span> club, 2018</span></div>
 </div>
 
 <!-- ====== ACT 3: WORK CARDS (7-10s, inside the tube wave) ====== -->
@@ -1325,18 +1355,10 @@
   <div class="nav-tagline">Closing · Building</div>
 </nav>
 
-<!-- The 15s video plays across this scroll length -->
+<!-- The 15s video plays across this scroll length.
+     There is intentionally NO content below — the journey ends frozen
+     on the final frame of the horizon, with the segmenter still active. -->
 <div class="scrub-spacer"></div>
-
-<!-- ============ CONTENT BELOW CINEMATIC ============ -->
-<div class="content">
-
-  <footer class="site-footer">
-    <div class="footer-tagline">Closing today. Building tomorrow.</div>
-    <div class="footer-copyright">© 2026 [Your Name]</div>
-  </footer>
-
-</div>
 
 <script>
   // === CURSOR ===
@@ -1428,23 +1450,11 @@
     const scrolled = window.scrollY - spacer.offsetTop;
     const progress = clamp(scrolled / (spacer.offsetHeight - innerHeight), 0, 1);
 
-    // RELEASE: once the scrub is done, hide every cinematic element so the
-    // sections below own the viewport cleanly. No leaking overlays.
-    const releasePoint = spacer.offsetTop + spacer.offsetHeight - innerHeight;
-    const isReleased = window.scrollY >= releasePoint;
-    if (isReleased) {
-      stage.style.display = 'none';
-      Object.values(frames).forEach(f => f.style.display = 'none');
-      frames.work.classList.remove('active');
-      frames.ask.classList.remove('active');
-      frames.pivot.classList.remove('active');
-      waterStage.classList.remove('active');
-      beachTicker.style.opacity = 0;
-      return;
-    } else {
-      stage.style.display = '';
-      Object.values(frames).forEach(f => f.style.display = '');
-    }
+    // RELEASE LOGIC — disabled.
+    // There is no content below the cinematic anymore. The journey ends
+    // frozen on the final frame of the horizon with the ask still active.
+    // Previously this hid the stage; now we let the final frame persist
+    // so the user can keep interacting with the segmenter.
 
     // Drive the video
     targetTime = progress * (video.duration || 15);
@@ -1461,12 +1471,16 @@
     const act2Active = progress >= 0.20 && progress <= 0.48;
     frames.claim.style.opacity = act2Active ? 1 : 0;
 
-    // Each beat gets ~6% of scroll: appear, hold, disappear.
-    // Beat N visible roughly from (0.225 + N*0.06) to (0.265 + N*0.06)
+    // Each beat gets ~5% of scroll: appear, hold, disappear.
+    // Five beats now (added UCF UpStarts as beat 5).
+    // Window: 0.21 → 0.46 = 25% of scroll, divided across 5 beats.
     const beats = frames.claim.querySelectorAll('.cine-beat');
+    const beatStart = 0.21;
+    const beatRange = 0.25;
+    const beatWidth = beatRange / beats.length;  // 0.05 per beat with 5 beats
     beats.forEach((beat, i) => {
-      const start = 0.225 + i * 0.06;
-      const end = start + 0.05;
+      const start = beatStart + i * beatWidth;
+      const end = start + beatWidth - 0.005; // ~0.5% gap between beats
       const fadeIn = mapRange(progress, start, start + 0.012, 0, 1);
       const fadeOut = mapRange(progress, end - 0.012, end, 1, 0);
       const op = Math.min(fadeIn, fadeOut);
@@ -1492,16 +1506,18 @@
     else frames.pivot.classList.remove('active');
 
     // === ACT 5: ASK (0.87 - 1.00) ===
-    const askOp = fadeFrame(progress, 0.88, 0.94, 0.985, 1.0);
+    // No fade-out — the ask holds at full opacity at the end so the
+    // segmenter stays interactive on the final frame.
+    const askOp = mapRange(progress, 0.88, 0.94, 0, 1);
     frames.ask.style.opacity = askOp;
     frames.ask.style.transform = `translateY(${mapRange(progress, 0.88, 0.94, 30, 0)}px)`;
     if (askOp > 0.5) frames.ask.classList.add('active');
     else frames.ask.classList.remove('active');
 
-    // === WATER ripples — appear only during ASK section ===
-    const waterOp = fadeFrame(progress, 0.86, 0.93, 0.985, 1.0);
+    // === WATER ripples — appear during ASK section, stay visible at the end ===
+    const waterOp = mapRange(progress, 0.86, 0.93, 0, 1);
     waterStage.style.opacity = waterOp;
-    if (progress > 0.9 && progress < 0.985) waterStage.classList.add('active');
+    if (progress > 0.9) waterStage.classList.add('active');
     else waterStage.classList.remove('active');
   }
 
@@ -1532,13 +1548,9 @@
     const spacer = document.querySelector('.scrub-spacer');
     const scrolled = window.scrollY - spacer.offsetTop;
     const progress = clamp(scrolled / (spacer.offsetHeight - innerHeight), 0, 1);
-    const releasePoint = spacer.offsetTop + spacer.offsetHeight - innerHeight;
 
-    if (window.scrollY >= releasePoint) {
-      scrollIndicator.classList.add('hidden');
-      scrim.style.opacity = '0';
-      return;
-    }
+    // Scroll indicator stays visible throughout — there's nothing below
+    // the cinematic, so it's never "released."
     scrollIndicator.classList.remove('hidden');
 
     // Determine current act
