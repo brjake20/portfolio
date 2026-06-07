@@ -28,18 +28,22 @@
 
   /* =========================================================
      CINEMATIC SCROLL ARCHITECTURE
-     The 15s portfolio_background.mp4 is scrubbed across 1000vh.
-     Each viewport of scroll = ~1.5 seconds of video time.
+     The 15s portfolio_background.mp4 is scrubbed across 1300vh.
+     Each viewport of scroll = ~1.15 seconds of video time.
+
+     The slower scrub gives Act 2's receipts beats real reading time —
+     each ~1 second of visible hold instead of 0.75. Other acts benefit
+     proportionally without feeling sluggish.
      =========================================================
 
      Video timeline (mapped to scroll progress 0 → 1):
-       0-3s deck (0.00 - 0.20)      → HERO
-       3-7s beach + people (0.20 - 0.47) → CLAIM
-       7-10s tube wave (0.47 - 0.67)     → WORK CARDS
-       10-13s breakthrough (0.67 - 0.87) → "What's next?"
-       13-15s horizon (0.87 - 1.00)      → ASK / contact
+       0-3s deck (0.00 - 0.16)           → HERO
+       3-7s beach + people (0.16 - 0.55) → RECEIPTS (5 beats staged)
+       7-10s tube wave (0.55 - 0.70)     → WORK CARDS
+       10-13s breakthrough (0.70 - 0.87) → REELS (corner thumbnails)
+       13-15s horizon (0.87 - 1.00)      → ASK / segmenter
   */
-  .scrub-spacer { height: 1000vh; position: relative; z-index: 1; }
+  .scrub-spacer { height: 1300vh; position: relative; z-index: 1; }
 
   .stage {
     position: fixed; inset: 0; z-index: 0;
@@ -229,65 +233,134 @@
   }
 
   /* === CINEMATIC REELS (Act 4) ===
-     Two vertical iOS reels appear inline as the camera bursts through the wave.
-     No card chrome — these are framed clips, not portfolio cards. */
+     Two small thumbnails anchored in bottom corners. They blend with the
+     open-ocean scene — small enough that the sailboat and horizon stay
+     visible. Click to expand the reel in place; click again or click
+     outside to collapse. */
   .cinematic-reels {
     position: fixed; inset: 0; z-index: 5;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 0 3rem;
     pointer-events: none; opacity: 0;
   }
-  .cinematic-reels.active { pointer-events: auto; }
+  .cinematic-reels.active { pointer-events: none; }
+  .cinematic-reels.active .cine-reel-corner { pointer-events: auto; }
+  .cinematic-reels.active .reels-text { pointer-events: none; }
+
+  /* Center text overlay — sits up top so it doesn't compete with the reels */
+  .reels-text {
+    position: absolute;
+    top: 18%; left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: max-content;
+    max-width: 90vw;
+  }
   .reels-eyebrow {
     font-family: var(--mono); font-size: 0.7rem;
     text-transform: uppercase; letter-spacing: 0.3em;
     color: var(--accent);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
     text-shadow: 0 2px 12px rgba(0,0,0,0.5);
   }
   .reels-tagline {
     font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
-    color: rgba(255,255,255,0.9);
-    margin-bottom: 2rem;
+    font-size: clamp(1.1rem, 1.8vw, 1.6rem);
+    color: rgba(255,255,255,0.92);
     text-shadow: 0 4px 24px rgba(0,0,0,0.6);
-    text-align: center;
   }
-  .reels-row {
-    display: flex; gap: 1.5rem;
-    align-items: center; justify-content: center;
-  }
-  .cine-reel {
-    width: clamp(180px, 18vw, 260px);
+
+  /* The corner thumbnails — small by default */
+  .cine-reel-corner {
+    position: absolute;
+    width: 140px;
     aspect-ratio: 9 / 16;
-    background: rgba(8, 18, 28, 0.6);
+    background: rgba(8, 18, 28, 0.55);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    position: relative; overflow: hidden;
+    overflow: hidden;
     cursor: none;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    transition:
+      width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      left 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      right 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.4s,
+      box-shadow 0.4s,
+      opacity 0.4s;
+    z-index: 6;
   }
-  .cine-reel:hover {
-    transform: scale(1.04) translateY(-6px);
+  .cine-reel-corner.left  { bottom: 3rem; left: 3rem;  }
+  .cine-reel-corner.right { bottom: 3rem; right: 3rem; }
+  .cine-reel-corner:hover {
     border-color: rgba(232, 213, 160, 0.5);
+    transform: translateY(-4px);
   }
+
+  /* Expanded state — reel grows in place from its corner */
+  .cine-reel-corner.expanded {
+    width: clamp(280px, 30vw, 380px);
+    border-color: var(--accent);
+    box-shadow: 0 28px 80px rgba(0,0,0,0.55);
+    z-index: 7;
+  }
+  .cine-reel-corner.expanded:hover {
+    transform: none;
+  }
+
+  /* When one is expanded, the other recedes slightly */
+  .cinematic-reels.has-expanded .cine-reel-corner:not(.expanded) {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+
+  /* The close (×) button — only visible when expanded */
+  .cine-reel-close {
+    position: absolute;
+    top: 0.5rem; right: 0.5rem;
+    width: 28px; height: 28px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    color: #fff;
+    font-family: var(--body);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: none;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.3s, transform 0.3s, background 0.3s, border-color 0.3s;
+    z-index: 5;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+  }
+  .cine-reel-corner.expanded .cine-reel-close {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  .cine-reel-close:hover {
+    background: rgba(232, 213, 160, 0.3);
+    border-color: var(--accent);
+  }
+
+  /* The placeholder inside (will be replaced with actual <video>) */
   .cine-reel-placeholder {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 0.6rem;
+    font-family: var(--mono); font-size: 0.55rem;
     text-transform: uppercase; letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.5);
-    text-align: center; padding: 1rem;
+    color: rgba(255,255,255,0.65);
+    text-align: center; padding: 0.5rem;
     z-index: 1;
   }
-  .cine-reel.surf .cine-reel-placeholder {
+  .cine-reel-corner.surf .cine-reel-placeholder {
     background: linear-gradient(180deg, #3a7a9a 0%, #1a4a6a 50%, #0a2a4a 100%);
   }
-  .cine-reel.snow .cine-reel-placeholder {
+  .cine-reel-corner.snow .cine-reel-placeholder {
     background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%);
   }
   .cine-reel-overlay {
@@ -296,42 +369,55 @@
     z-index: 2; pointer-events: none;
   }
   .cine-reel-meta {
-    position: absolute; bottom: 0.9rem; left: 0.9rem; right: 0.9rem;
+    position: absolute; bottom: 0.75rem; left: 0.75rem; right: 0.75rem;
     z-index: 3;
   }
   .cine-reel-tag {
     font-family: var(--mono); font-size: 0.55rem;
     text-transform: uppercase; letter-spacing: 0.2em;
     color: var(--accent);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.15rem;
   }
   .cine-reel-title {
     font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(1rem, 1.3vw, 1.2rem);
+    font-size: 0.95rem;
     color: #fff; letter-spacing: -0.02em; line-height: 1.1;
+    transition: font-size 0.4s;
+  }
+  .cine-reel-corner.expanded .cine-reel-title {
+    font-size: 1.3rem;
   }
   .cine-reel-play {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 40px; height: 40px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     background: rgba(0,0,0,0.5);
     border: 1.5px solid rgba(255,255,255,0.7);
     display: flex; align-items: center; justify-content: center;
     z-index: 3;
-    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+    transition: transform 0.3s, background 0.3s, border-color 0.3s, width 0.4s, height 0.4s;
+    pointer-events: none;
   }
-  .cine-reel:hover .cine-reel-play {
-    transform: translate(-50%, -50%) scale(1.15);
+  .cine-reel-corner.expanded .cine-reel-play {
+    width: 56px; height: 56px;
+  }
+  .cine-reel-corner:hover .cine-reel-play {
     background: rgba(232,213,160,0.25);
     border-color: var(--accent);
   }
   .cine-reel-play::after {
     content: '';
     width: 0; height: 0;
-    border-left: 10px solid #fff;
+    border-left: 9px solid #fff;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
+    margin-left: 2px;
+  }
+  .cine-reel-corner.expanded .cine-reel-play::after {
+    border-left: 14px solid #fff;
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
     margin-left: 3px;
   }
 
@@ -532,6 +618,13 @@
     .hero-ticker { font-size: 0.6rem; gap: 1rem; }
     .seg-pill { padding: 0.65rem 1rem; font-size: 0.6rem; }
     .work-card .live-signal { font-size: 0.5rem; }
+    .cine-reel-corner { width: 90px; }
+    .cine-reel-corner.left  { bottom: 1.5rem; left: 1.5rem;  }
+    .cine-reel-corner.right { bottom: 1.5rem; right: 1.5rem; }
+    .cine-reel-corner.expanded { width: clamp(180px, 50vw, 240px); }
+    .reels-text { top: 14%; }
+    .cine-reel-title { font-size: 0.7rem; }
+    .cine-reel-corner.expanded .cine-reel-title { font-size: 1rem; }
   }
 
   /* === Cursor === */
@@ -1299,33 +1392,40 @@
 </div>
 
 <!-- ====== ACT 4: CINEMATIC REELS (10-13s, breakthrough into open ocean) ====== -->
-<!-- The two iOS vertical reels appear as the camera bursts through the wave. -->
+<!-- Reels live as small thumbnails in the bottom corners so the open ocean
+     scene breathes. Click a thumbnail to expand it in place. -->
 <div class="cinematic-reels" id="framePivot">
-  <div class="reels-eyebrow">Outside the work</div>
-  <div class="reels-tagline">What I shoot when I'm not closing.</div>
-  <div class="reels-row">
 
-    <div class="cine-reel surf">
-      <div class="cine-reel-placeholder">[ Surf reel<br>15s iOS vertical ]</div>
-      <div class="cine-reel-overlay"></div>
-      <div class="cine-reel-play"></div>
-      <div class="cine-reel-meta">
-        <div class="cine-reel-tag">Surf · 15s</div>
-        <div class="cine-reel-title">Saltwater</div>
-      </div>
-    </div>
-
-    <div class="cine-reel snow">
-      <div class="cine-reel-placeholder">[ Snow reel<br>15s iOS vertical ]</div>
-      <div class="cine-reel-overlay"></div>
-      <div class="cine-reel-play"></div>
-      <div class="cine-reel-meta">
-        <div class="cine-reel-tag">Snow · 15s</div>
-        <div class="cine-reel-title">Cold lines</div>
-      </div>
-    </div>
-
+  <!-- Center text overlay -->
+  <div class="reels-text">
+    <div class="reels-eyebrow">Outside the work</div>
+    <div class="reels-tagline">What I shoot when I'm not closing.</div>
   </div>
+
+  <!-- Bottom-left corner: Surf reel -->
+  <div class="cine-reel-corner left surf" id="reelSurf">
+    <div class="cine-reel-placeholder">[ Surf · 15s<br>tap to view ]</div>
+    <div class="cine-reel-overlay"></div>
+    <div class="cine-reel-play"></div>
+    <div class="cine-reel-meta">
+      <div class="cine-reel-tag">Surf · 15s</div>
+      <div class="cine-reel-title">Saltwater</div>
+    </div>
+    <button class="cine-reel-close" aria-label="Collapse">×</button>
+  </div>
+
+  <!-- Bottom-right corner: Snow reel -->
+  <div class="cine-reel-corner right snow" id="reelSnow">
+    <div class="cine-reel-placeholder">[ Snow · 15s<br>tap to view ]</div>
+    <div class="cine-reel-overlay"></div>
+    <div class="cine-reel-play"></div>
+    <div class="cine-reel-meta">
+      <div class="cine-reel-tag">Snow · 15s</div>
+      <div class="cine-reel-title">Cold lines</div>
+    </div>
+    <button class="cine-reel-close" aria-label="Collapse">×</button>
+  </div>
+
 </div>
 
 <!-- ====== ACT 5: ASK (13-15s, horizon) — V2 SEGMENTER ====== -->
@@ -1375,7 +1475,7 @@
     ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
     requestAnimationFrame(cursorLoop);
   })();
-  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill, .cine-reel').forEach(el => {
+  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill, .cine-reel, .cine-reel-corner, .cine-reel-close').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
   });
@@ -1459,30 +1559,29 @@
     // Drive the video
     targetTime = progress * (video.duration || 15);
 
-    // === ACT 1: HERO (0.00 - 0.20) ===
-    frames.hero.style.opacity = mapRange(progress, 0.13, 0.20, 1, 0);
-    frames.hero.style.transform = `translateY(${mapRange(progress, 0, 0.20, 0, 180)}px)`;
-    frames.hero.style.filter = `blur(${mapRange(progress, 0.13, 0.20, 0, 8)}px)`;
+    // === ACT 1: HERO (0.00 - 0.16) ===
+    frames.hero.style.opacity = mapRange(progress, 0.10, 0.16, 1, 0);
+    frames.hero.style.transform = `translateY(${mapRange(progress, 0, 0.16, 0, 180)}px)`;
+    frames.hero.style.filter = `blur(${mapRange(progress, 0.10, 0.16, 0, 8)}px)`;
 
-    // === ACT 2: CINEMATIC RECEIPTS (0.20 - 0.47) ===
-    // The frame itself is always "showing" during Act 2; individual beats
-    // fade in and out within it. We just need to make sure the container is
-    // opaque during the act so the beats aren't hidden behind opacity:0.
-    const act2Active = progress >= 0.20 && progress <= 0.48;
+    // === ACT 2: CINEMATIC RECEIPTS (0.16 - 0.55) ===
+    // The frame is "showing" during Act 2; individual beats fade in and
+    // out within it. More progress allocated to Act 2 vs prior version
+    // so each beat has real reading time.
+    const act2Active = progress >= 0.16 && progress <= 0.56;
     frames.claim.style.opacity = act2Active ? 1 : 0;
 
-    // Each beat gets ~5% of scroll: appear, hold, disappear.
-    // Five beats now (added UCF UpStarts as beat 5).
-    // Window: 0.21 → 0.46 = 25% of scroll, divided across 5 beats.
+    // 5 beats spread across 0.18 → 0.54 = 36% of progress
+    // Each beat ~7.2% of progress (with ~0.5% gap) — much more breath than before.
     const beats = frames.claim.querySelectorAll('.cine-beat');
-    const beatStart = 0.21;
-    const beatRange = 0.25;
-    const beatWidth = beatRange / beats.length;  // 0.05 per beat with 5 beats
+    const beatStart = 0.18;
+    const beatRange = 0.36;
+    const beatWidth = beatRange / beats.length;  // 0.072 per beat with 5 beats
     beats.forEach((beat, i) => {
       const start = beatStart + i * beatWidth;
-      const end = start + beatWidth - 0.005; // ~0.5% gap between beats
-      const fadeIn = mapRange(progress, start, start + 0.012, 0, 1);
-      const fadeOut = mapRange(progress, end - 0.012, end, 1, 0);
+      const end = start + beatWidth - 0.005; // small gap between beats
+      const fadeIn = mapRange(progress, start, start + 0.015, 0, 1);
+      const fadeOut = mapRange(progress, end - 0.015, end, 1, 0);
       const op = Math.min(fadeIn, fadeOut);
       if (op > 0.05) beat.classList.add('visible');
       else beat.classList.remove('visible');
@@ -1490,17 +1589,17 @@
     });
 
     // Ambient ticker — runs along the bottom for all of Act 2
-    const tickerOp = fadeFrame(progress, 0.21, 0.26, 0.44, 0.47);
+    const tickerOp = fadeFrame(progress, 0.17, 0.22, 0.52, 0.56);
     beachTicker.style.opacity = tickerOp;
 
-    // === ACT 3: WORK CARDS (0.47 - 0.67) ===
-    const workOp = fadeFrame(progress, 0.48, 0.54, 0.63, 0.67);
+    // === ACT 3: WORK CARDS (0.55 - 0.70) ===
+    const workOp = fadeFrame(progress, 0.56, 0.62, 0.67, 0.70);
     frames.work.style.opacity = workOp;
     if (workOp > 0.5) frames.work.classList.add('active');
     else frames.work.classList.remove('active');
 
-    // === ACT 4: CINEMATIC REELS (0.67 - 0.87) ===
-    const reelsOp = fadeFrame(progress, 0.68, 0.74, 0.82, 0.87);
+    // === ACT 4: CINEMATIC REELS (0.70 - 0.87) ===
+    const reelsOp = fadeFrame(progress, 0.71, 0.76, 0.83, 0.87);
     frames.pivot.style.opacity = reelsOp;
     if (reelsOp > 0.5) frames.pivot.classList.add('active');
     else frames.pivot.classList.remove('active');
@@ -1537,10 +1636,10 @@
   const scrim = document.getElementById('scrim');
 
   const acts = [
-    { range: [0.00, 0.20], num: '01', label: 'The deck' },
-    { range: [0.20, 0.47], num: '02', label: 'The beach' },
-    { range: [0.47, 0.67], num: '03', label: 'In the barrel' },
-    { range: [0.67, 0.87], num: '04', label: 'Breakthrough' },
+    { range: [0.00, 0.16], num: '01', label: 'The deck' },
+    { range: [0.16, 0.55], num: '02', label: 'The beach' },
+    { range: [0.55, 0.70], num: '03', label: 'In the barrel' },
+    { range: [0.70, 0.87], num: '04', label: 'Breakthrough' },
     { range: [0.87, 1.00], num: '05', label: 'The horizon' },
   ];
 
@@ -1634,6 +1733,54 @@
         setTimeout(() => respCta.classList.add('visible'), 200);
       }, 200);
     });
+  });
+
+  // ============ V2: REEL EXPAND-ON-CLICK (Act 4) ============
+  /*
+    The two reels live as small corner thumbnails. Clicking one expands
+    it in place. The other reel dims to recede. Click the × button or
+    anywhere outside to collapse.
+
+    When you replace the placeholder divs with real <video> elements,
+    you can wire video.play() into the click handler so videos start
+    playing only when expanded.
+  */
+  const reels = document.querySelectorAll('.cine-reel-corner');
+  const reelsContainer = document.getElementById('framePivot');
+
+  reels.forEach(reel => {
+    reel.addEventListener('click', (e) => {
+      // Ignore clicks on the close button itself (it has its own handler)
+      if (e.target.classList.contains('cine-reel-close')) return;
+      e.stopPropagation();
+
+      // Toggle: if already expanded, collapse. Otherwise expand this one.
+      const wasExpanded = reel.classList.contains('expanded');
+      reels.forEach(r => r.classList.remove('expanded'));
+      reelsContainer.classList.remove('has-expanded');
+
+      if (!wasExpanded) {
+        reel.classList.add('expanded');
+        reelsContainer.classList.add('has-expanded');
+      }
+    });
+  });
+
+  // Close buttons
+  document.querySelectorAll('.cine-reel-close').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      reels.forEach(r => r.classList.remove('expanded'));
+      reelsContainer.classList.remove('has-expanded');
+    });
+  });
+
+  // Click anywhere outside the reels collapses them
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.cine-reel-corner')) {
+      reels.forEach(r => r.classList.remove('expanded'));
+      reelsContainer.classList.remove('has-expanded');
+    }
   });
 
   // === INTERACTIVE WATER CANVAS ===
