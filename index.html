@@ -113,6 +113,216 @@
 
   /* ============ V2 ADDITIONS ============ */
 
+  /* === CINEMATIC RECEIPTS (Act 2) ===
+     Replace the static claim with staged film-credit-style numbers.
+     Each beat fades in, holds, fades out — like end credits but for proof.
+     No card chrome — just text on the beach. */
+  .cinematic-receipts {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3rem;
+    pointer-events: none; opacity: 0;
+  }
+  .cine-beat {
+    position: absolute;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+    max-width: 900px;
+  }
+  .cine-beat.visible {
+    opacity: 1; transform: translateY(0);
+  }
+  .cine-num {
+    font-family: var(--display); font-weight: 300;
+    font-size: clamp(5rem, 14vw, 13rem);
+    line-height: 0.88; letter-spacing: -0.04em;
+    color: #fff;
+    text-shadow: 0 8px 60px rgba(0,0,0,0.5);
+  }
+  .cine-num .small {
+    font-size: 0.45em;
+    color: var(--accent);
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+  .cine-label {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+    color: rgba(255,255,255,0.95);
+    line-height: 1.4;
+    margin-top: 1.5rem;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
+  }
+  .cine-context {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.25em;
+    color: var(--accent);
+    margin-top: 1rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    opacity: 0.85;
+  }
+
+  /* The credentials beat (MIT + ANGI side by side) */
+  .cine-beat.credentials {
+    display: flex;
+    gap: clamp(2rem, 6vw, 5rem);
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .cine-beat.credentials .cred {
+    text-align: center;
+    flex: 0 1 320px;
+  }
+  .cine-beat.credentials .cine-num {
+    font-size: clamp(4rem, 10vw, 9rem);
+  }
+  .cine-beat.credentials .cine-label {
+    font-size: clamp(0.95rem, 1.4vw, 1.2rem);
+    margin-top: 1rem;
+  }
+
+  /* Ambient ticker — the leftover receipts subtly along the bottom */
+  .beach-ticker {
+    position: fixed;
+    left: 0; right: 0; bottom: 2rem;
+    z-index: 4;
+    display: flex; justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: rgba(255,255,255,0.55);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s;
+  }
+  .beach-ticker .tk-item {
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .beach-ticker .tk-item::before {
+    content: '+';
+    color: var(--accent);
+    margin-right: 0.3rem;
+  }
+  .beach-ticker .tk-num {
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+  }
+
+  /* === CINEMATIC REELS (Act 4) ===
+     Two vertical iOS reels appear inline as the camera bursts through the wave.
+     No card chrome — these are framed clips, not portfolio cards. */
+  .cinematic-reels {
+    position: fixed; inset: 0; z-index: 5;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 3rem;
+    pointer-events: none; opacity: 0;
+  }
+  .cinematic-reels.active { pointer-events: auto; }
+  .reels-eyebrow {
+    font-family: var(--mono); font-size: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .reels-tagline {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 2rem;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    text-align: center;
+  }
+  .reels-row {
+    display: flex; gap: 1.5rem;
+    align-items: center; justify-content: center;
+  }
+  .cine-reel {
+    width: clamp(180px, 18vw, 260px);
+    aspect-ratio: 9 / 16;
+    background: rgba(8, 18, 28, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    position: relative; overflow: hidden;
+    cursor: none;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .cine-reel:hover {
+    transform: scale(1.04) translateY(-6px);
+    border-color: rgba(232, 213, 160, 0.5);
+  }
+  .cine-reel-placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: rgba(255,255,255,0.5);
+    text-align: center; padding: 1rem;
+    z-index: 1;
+  }
+  .cine-reel.surf .cine-reel-placeholder {
+    background: linear-gradient(180deg, #3a7a9a 0%, #1a4a6a 50%, #0a2a4a 100%);
+  }
+  .cine-reel.snow .cine-reel-placeholder {
+    background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%);
+  }
+  .cine-reel-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.75) 100%);
+    z-index: 2; pointer-events: none;
+  }
+  .cine-reel-meta {
+    position: absolute; bottom: 0.9rem; left: 0.9rem; right: 0.9rem;
+    z-index: 3;
+  }
+  .cine-reel-tag {
+    font-family: var(--mono); font-size: 0.55rem;
+    text-transform: uppercase; letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 0.2rem;
+  }
+  .cine-reel-title {
+    font-family: var(--display); font-style: italic; font-weight: 300;
+    font-size: clamp(1rem, 1.3vw, 1.2rem);
+    color: #fff; letter-spacing: -0.02em; line-height: 1.1;
+  }
+  .cine-reel-play {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 1.5px solid rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+    transition: transform 0.3s, background 0.3s, border-color 0.3s;
+  }
+  .cine-reel:hover .cine-reel-play {
+    transform: translate(-50%, -50%) scale(1.15);
+    background: rgba(232,213,160,0.25);
+    border-color: var(--accent);
+  }
+  .cine-reel-play::after {
+    content: '';
+    width: 0; height: 0;
+    border-left: 10px solid #fff;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    margin-left: 3px;
+  }
+
   /* === READABILITY SCRIM ===
      A dynamic dark gradient layer behind text that intensifies based on
      which act is showing. Solves the contrast problem from variable video
@@ -978,15 +1188,51 @@
   <div class="scroll-cue">Scroll to begin</div>
 </div>
 
-<!-- ====== ACT 2: CLAIM (3-7s, beach with people) ====== -->
-<div class="frame-claim" id="frameClaim">
-  <div>
-    <div class="claim-eyebrow">Why I'm here</div>
-    <div class="claim-text">
-      Top 1% closer. <span class="accent">MIT-trained</span> in applied data science.<br>
-      I bring AI into businesses that haven't caught up yet.
+<!-- ====== ACT 2: CINEMATIC RECEIPTS (3-7s, beach with people) ====== -->
+<!-- The receipts now play out like film credits over the beach scene.
+     Four highlight beats stage one at a time, ambient ticker runs along the bottom. -->
+<div class="cinematic-receipts" id="frameClaim">
+
+  <!-- Beat 1: 100/mo -->
+  <div class="cine-beat" data-beat="0">
+    <div class="cine-num">100<span class="small">/mo</span></div>
+    <div class="cine-label">sales in a single month.</div>
+    <div class="cine-context">Top 6% of 500+ reps · Assurance IQ</div>
+  </div>
+
+  <!-- Beat 2: 34% conversion -->
+  <div class="cine-beat" data-beat="1">
+    <div class="cine-num">34<span class="small">%</span></div>
+    <div class="cine-label">conversion rate.</div>
+    <div class="cine-context">The company averaged 16</div>
+  </div>
+
+  <!-- Beat 3: $60K in two weeks -->
+  <div class="cine-beat" data-beat="2">
+    <div class="cine-num">$60K</div>
+    <div class="cine-label">commission in two weeks. 4.5× the team's system size.</div>
+    <div class="cine-context">Malama Solar · Honolulu</div>
+  </div>
+
+  <!-- Beat 4: Credentials — MIT + ANGI side by side -->
+  <div class="cine-beat credentials" data-beat="3">
+    <div class="cred">
+      <div class="cine-num">MIT</div>
+      <div class="cine-label">Applied Data Science. Neural nets for sales forecasting.</div>
+    </div>
+    <div class="cred">
+      <div class="cine-num">ANGI</div>
+      <div class="cine-label">Top 10% in new hire class.</div>
     </div>
   </div>
+
+</div>
+
+<!-- Ambient ticker — leftover receipts subtly along the bottom of the beach -->
+<div class="beach-ticker" id="beachTicker">
+  <div class="tk-item"><span><span class="tk-num">300+</span> assets self-managed</span></div>
+  <div class="tk-item"><span><span class="tk-num">18</span>-person investor group I lead</span></div>
+  <div class="tk-item"><span>Since <span class="tk-num">2017</span></span></div>
 </div>
 
 <!-- ====== ACT 3: WORK CARDS (7-10s, inside the tube wave) ====== -->
@@ -1022,9 +1268,34 @@
   </a>
 </div>
 
-<!-- ====== ACT 4: PIVOT (10-13s, breakthrough into open ocean) ====== -->
-<div class="frame-pivot" id="framePivot">
-  <div class="pivot-text">What's <span class="accent">next?</span></div>
+<!-- ====== ACT 4: CINEMATIC REELS (10-13s, breakthrough into open ocean) ====== -->
+<!-- The two iOS vertical reels appear as the camera bursts through the wave. -->
+<div class="cinematic-reels" id="framePivot">
+  <div class="reels-eyebrow">Outside the work</div>
+  <div class="reels-tagline">What I shoot when I'm not closing.</div>
+  <div class="reels-row">
+
+    <div class="cine-reel surf">
+      <div class="cine-reel-placeholder">[ Surf reel<br>15s iOS vertical ]</div>
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Surf · 15s</div>
+        <div class="cine-reel-title">Saltwater</div>
+      </div>
+    </div>
+
+    <div class="cine-reel snow">
+      <div class="cine-reel-placeholder">[ Snow reel<br>15s iOS vertical ]</div>
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Snow · 15s</div>
+        <div class="cine-reel-title">Cold lines</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ====== ACT 5: ASK (13-15s, horizon) — V2 SEGMENTER ====== -->
@@ -1047,7 +1318,6 @@
     <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="contact-pill"><span>GitHub</span><span class="arrow">↗</span></a>
     <a href="#" class="contact-pill"><span>Instagram</span><span class="arrow">↗</span></a>
   </div>
-  <div class="scroll-down-cue">More below</div>
 </div>
 
 <nav>
@@ -1060,136 +1330,6 @@
 
 <!-- ============ CONTENT BELOW CINEMATIC ============ -->
 <div class="content">
-
-  <!-- ====== RECEIPTS GRID ====== -->
-  <section class="receipts-section" id="receipts">
-    <div class="section-eyebrow">The receipts</div>
-    <h2 class="section-title">Numbers that <span class="italic">stack up.</span></h2>
-    <p class="section-subtitle">Volume, conversion, dollars, credentials, and self-directed work — what the resume actually says.</p>
-
-    <div class="receipts-grid">
-      <div class="receipt-card">
-        <div>
-          <div class="index">01</div>
-          <div class="category">Sales / Volume</div>
-        </div>
-        <div>
-          <div class="big-num">100<span class="unit">/mo</span></div>
-          <div class="label">Sales in a single month at Assurance IQ.</div>
-          <div class="context">Top 6% of 500+ reps</div>
-        </div>
-      </div>
-
-      <div class="receipt-card">
-        <div>
-          <div class="index">02</div>
-          <div class="category">Sales / Conversion</div>
-        </div>
-        <div>
-          <div class="big-num">34<span class="unit">%</span></div>
-          <div class="label">Conversion rate. The company averaged 16.</div>
-          <div class="context">Top-ranked agent</div>
-        </div>
-      </div>
-
-      <div class="receipt-card">
-        <div>
-          <div class="index">03</div>
-          <div class="category">Sales / Dollars</div>
-        </div>
-        <div>
-          <div class="big-num">$60K</div>
-          <div class="label">Commission in two weeks. 4.5× the team's system size.</div>
-          <div class="context">Malama Solar, Honolulu</div>
-        </div>
-      </div>
-
-      <div class="receipt-card">
-        <div>
-          <div class="index">04</div>
-          <div class="category">Credential / AI</div>
-        </div>
-        <div>
-          <div class="big-num">MIT</div>
-          <div class="label">Applied Data Science. Capstone in neural networks for sales forecasting.</div>
-          <div class="context">2022</div>
-        </div>
-      </div>
-
-      <div class="receipt-card">
-        <div>
-          <div class="index">05</div>
-          <div class="category">Self-directed / Markets</div>
-        </div>
-        <div>
-          <div class="big-num">300<span class="unit">+</span></div>
-          <div class="label">Assets in a portfolio I built and rebalance quarterly.</div>
-          <div class="context">Crypto, equities, alternatives</div>
-        </div>
-      </div>
-
-      <div class="receipt-card">
-        <div>
-          <div class="index">06</div>
-          <div class="category">Self-directed / Community</div>
-        </div>
-        <div>
-          <div class="big-num">18</div>
-          <div class="label">Investors in my group chat. Daily trades, theses, macro reads.</div>
-          <div class="context">Built and led since 2017</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ====== VOICE + TASTE TRIPTYCH ====== -->
-  <section class="triptych-section" id="voice">
-    <div class="section-eyebrow">In my own words. And in my own eye.</div>
-    <h2 class="section-title">Sixty seconds, <span class="italic">no script.</span></h2>
-    <p class="section-subtitle">The bridge thesis in plain language — flanked by what I shoot when I'm not closing.</p>
-
-    <div class="triptych">
-
-      <!-- Left reel: Surf -->
-      <div class="reel surf">
-        <div class="reel-placeholder">[ Surf reel<br>15s iOS vertical ]</div>
-        <div class="reel-overlay"></div>
-        <div class="reel-play-icon"></div>
-        <div class="reel-meta">
-          <div class="reel-tag">Surf · 15s</div>
-          <div class="reel-title">Saltwater</div>
-        </div>
-      </div>
-
-      <!-- Center: Loom -->
-      <div class="loom-card">
-        <div class="loom-placeholder"></div>
-        <div class="loom-overlay">
-          <div class="loom-top">
-            <div class="loom-tag">Loom · In my own words</div>
-            <div class="loom-duration">60s</div>
-          </div>
-          <div class="loom-bottom">
-            <div class="loom-title">The <span class="italic">bridge</span> — explained.</div>
-            <div class="loom-sub">No slides, no script. Just me to camera.</div>
-          </div>
-        </div>
-        <div class="loom-play-btn"></div>
-      </div>
-
-      <!-- Right reel: Snow -->
-      <div class="reel snow">
-        <div class="reel-placeholder">[ Snow reel<br>15s iOS vertical ]</div>
-        <div class="reel-overlay"></div>
-        <div class="reel-play-icon"></div>
-        <div class="reel-meta">
-          <div class="reel-tag">Snow · 15s</div>
-          <div class="reel-title">Cold lines</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
 
   <footer class="site-footer">
     <div class="footer-tagline">Closing today. Building tomorrow.</div>
@@ -1213,7 +1353,7 @@
     ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
     requestAnimationFrame(cursorLoop);
   })();
-  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill').forEach(el => {
+  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill, .cine-reel').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
   });
@@ -1237,6 +1377,7 @@
   const stage = document.getElementById('stage');
   const waterStage = document.getElementById('waterStage');
   const loader = document.getElementById('loader');
+  const beachTicker = document.getElementById('beachTicker');
 
   const frames = {
     hero: document.getElementById('frameHero'),
@@ -1296,7 +1437,9 @@
       Object.values(frames).forEach(f => f.style.display = 'none');
       frames.work.classList.remove('active');
       frames.ask.classList.remove('active');
+      frames.pivot.classList.remove('active');
       waterStage.classList.remove('active');
+      beachTicker.style.opacity = 0;
       return;
     } else {
       stage.style.display = '';
@@ -1311,10 +1454,30 @@
     frames.hero.style.transform = `translateY(${mapRange(progress, 0, 0.20, 0, 180)}px)`;
     frames.hero.style.filter = `blur(${mapRange(progress, 0.13, 0.20, 0, 8)}px)`;
 
-    // === ACT 2: CLAIM (0.20 - 0.47) ===
-    frames.claim.style.opacity = fadeFrame(progress, 0.22, 0.28, 0.42, 0.47);
-    frames.claim.style.transform =
-      `translateY(${mapRange(progress, 0.22, 0.28, 30, 0)}px) scale(${mapRange(progress, 0.22, 0.28, 0.96, 1)})`;
+    // === ACT 2: CINEMATIC RECEIPTS (0.20 - 0.47) ===
+    // The frame itself is always "showing" during Act 2; individual beats
+    // fade in and out within it. We just need to make sure the container is
+    // opaque during the act so the beats aren't hidden behind opacity:0.
+    const act2Active = progress >= 0.20 && progress <= 0.48;
+    frames.claim.style.opacity = act2Active ? 1 : 0;
+
+    // Each beat gets ~6% of scroll: appear, hold, disappear.
+    // Beat N visible roughly from (0.225 + N*0.06) to (0.265 + N*0.06)
+    const beats = frames.claim.querySelectorAll('.cine-beat');
+    beats.forEach((beat, i) => {
+      const start = 0.225 + i * 0.06;
+      const end = start + 0.05;
+      const fadeIn = mapRange(progress, start, start + 0.012, 0, 1);
+      const fadeOut = mapRange(progress, end - 0.012, end, 1, 0);
+      const op = Math.min(fadeIn, fadeOut);
+      if (op > 0.05) beat.classList.add('visible');
+      else beat.classList.remove('visible');
+      beat.style.opacity = op;
+    });
+
+    // Ambient ticker — runs along the bottom for all of Act 2
+    const tickerOp = fadeFrame(progress, 0.21, 0.26, 0.44, 0.47);
+    beachTicker.style.opacity = tickerOp;
 
     // === ACT 3: WORK CARDS (0.47 - 0.67) ===
     const workOp = fadeFrame(progress, 0.48, 0.54, 0.63, 0.67);
@@ -1322,9 +1485,11 @@
     if (workOp > 0.5) frames.work.classList.add('active');
     else frames.work.classList.remove('active');
 
-    // === ACT 4: PIVOT (0.67 - 0.87) ===
-    frames.pivot.style.opacity = fadeFrame(progress, 0.68, 0.74, 0.82, 0.87);
-    frames.pivot.style.transform = `scale(${mapRange(progress, 0.68, 0.78, 0.92, 1)})`;
+    // === ACT 4: CINEMATIC REELS (0.67 - 0.87) ===
+    const reelsOp = fadeFrame(progress, 0.68, 0.74, 0.82, 0.87);
+    frames.pivot.style.opacity = reelsOp;
+    if (reelsOp > 0.5) frames.pivot.classList.add('active');
+    else frames.pivot.classList.remove('active');
 
     // === ACT 5: ASK (0.87 - 1.00) ===
     const askOp = fadeFrame(progress, 0.88, 0.94, 0.985, 1.0);
