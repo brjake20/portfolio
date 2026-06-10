@@ -1,11 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="8" fill="#0a0a0b"/>
-  <text x="32" y="44"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Dark rounded background matching the site -->
+  <rect width="100" height="100" rx="14" fill="#0a0a0b"/>
+  <!-- Italic serif BT in accent gold. Letterform is drawn with -2 dx
+       to optically correct for the italic slant pulling text rightward. -->
+  <text x="50" y="72"
         text-anchor="middle"
-        font-family="Georgia, 'Times New Roman', serif"
+        font-family="Georgia, 'Times New Roman', Times, serif"
         font-style="italic"
         font-weight="400"
-        font-size="38"
-        letter-spacing="-2"
-        fill="#e8d5a0">BT</text>
+        font-size="62"
+        letter-spacing="-4"
+        fill="#e8d5a0"
+        dx="-2">BT</text>
+  <!-- A subtle accent line — echoes the wave/horizon motif from the site -->
+  <line x1="22" y1="85" x2="78" y2="85"
+        stroke="#e8d5a0"
+        stroke-width="1.5"
+        opacity="0.4"/>
 </svg>

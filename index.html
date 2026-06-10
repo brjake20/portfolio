@@ -170,36 +170,59 @@
     opacity: 0.85;
   }
 
-  /* The credentials beat (MIT + ANGI side by side) */
+  /* The credentials beat — handles 2-column (34% + $60K) and 3-column (MIT + ANGI + UpStarts) */
   .cine-beat.credentials {
     display: flex;
-    gap: clamp(2rem, 6vw, 5rem);
+    gap: clamp(2rem, 5vw, 4rem);
     justify-content: center;
     align-items: flex-start;
     flex-wrap: wrap;
+    max-width: 1200px;
+    width: 100%;
   }
   .cine-beat.credentials .cred {
     text-align: center;
-    flex: 0 1 320px;
+    flex: 0 1 300px;
   }
   .cine-beat.credentials .cine-num {
-    font-size: clamp(4rem, 10vw, 9rem);
+    font-size: clamp(3.5rem, 8vw, 7rem);
   }
   .cine-beat.credentials .cine-label {
-    font-size: clamp(0.95rem, 1.4vw, 1.2rem);
-    margin-top: 1rem;
+    font-size: clamp(0.9rem, 1.3vw, 1.15rem);
+    margin-top: 0.9rem;
+  }
+  .cine-beat.credentials .cine-context {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    margin-top: 0.6rem;
+  }
+  /* Optical sizing: longer brand names (UpStarts) need smaller type so they
+     visually balance against shorter ones (MIT, ANGI) sitting at full size. */
+  .cine-beat.credentials .cred.long .cine-num {
+    font-size: clamp(2.4rem, 5.5vw, 5rem);
+    margin-top: 0.5rem;
+  }
+  /* Triad layout (3 columns) — tighter gap, narrower columns to fit */
+  .cine-beat.credentials.triad .cred {
+    flex: 0 1 260px;
+  }
+  .cine-beat.credentials.triad .cine-num {
+    font-size: clamp(3rem, 6.5vw, 5.5rem);
+  }
+  .cine-beat.credentials.triad .cred.long .cine-num {
+    font-size: clamp(2.2rem, 4.5vw, 4rem);
   }
 
-  /* The UCF UpStarts beat — longer institution name needs scaled-down size */
-  .cine-beat[data-beat="4"] .cine-num {
-    font-size: clamp(3rem, 8vw, 7rem);
-    letter-spacing: -0.03em;
-  }
-  .cine-beat[data-beat="4"] .cine-label {
-    margin-top: 1.25rem;
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
+  /* On smaller screens, the 3-column credentials wrap awkwardly — stack vertically instead */
+  @media (max-width: 900px) {
+    .cine-beat.credentials.triad {
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: center;
+    }
+    .cine-beat.credentials.triad .cred {
+      flex: 0 1 auto;
+    }
   }
 
   /* Ambient ticker — the leftover receipts subtly along the bottom */
@@ -617,10 +640,10 @@
   @media (max-width: 768px) {
     .scroll-indicator { display: none; }
 
-    /* Hero ticker — position absolute on mobile, just above scroll cue */
+    /* Hero ticker — pinned near the bottom, just above the scroll cue. */
     .hero-ticker {
       position: absolute;
-      bottom: 5rem;
+      bottom: 4.5rem;
       left: 1.5rem; right: 1.5rem;
       margin-top: 0;
       font-size: 0.55rem;
@@ -628,6 +651,8 @@
       justify-content: center;
       letter-spacing: 0.15em;
     }
+    .scroll-cue { bottom: 1.5rem; }
+    .scroll-cue::after { height: 28px; }
 
     /* Beach ticker — make smaller and much less prominent on mobile */
     .beach-ticker {
@@ -671,17 +696,21 @@
     position: fixed; top: 0; left: 0; right: 0;
     padding: 1.5rem 3rem; z-index: 50;
     display: flex; justify-content: space-between; align-items: center;
-    mix-blend-mode: difference;
+    /* mix-blend-mode: difference removed — it produced muddy/olive colors
+       against the warm beach scene. Strong text-shadow handles legibility
+       across all video scenes instead. */
   }
   .logo {
     font-family: var(--display); font-weight: 400;
     font-size: 1.4rem; font-style: italic; letter-spacing: -0.02em;
     color: #fff;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7), 0 1px 4px rgba(0,0,0,0.5);
   }
   .nav-tagline {
     font-family: var(--mono); font-size: 0.7rem;
     text-transform: uppercase; letter-spacing: 0.2em;
-    color: #fff; opacity: 0.7;
+    color: #fff; opacity: 0.85;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
   }
 
   /* =========================================================
@@ -851,8 +880,8 @@
     transition: color 0.3s;
   }
   .work-card:hover .link { color: var(--accent); }
-  .work-card.w1 { top: 14%; left: 6%; animation: floatA 6s ease-in-out infinite; }
-  .work-card.w2 { top: 12%; right: 6%; animation: floatA 7s ease-in-out -1.5s infinite; }
+  .work-card.w1 { top: max(9rem, 14%); left: 6%; animation: floatA 6s ease-in-out infinite; }
+  .work-card.w2 { top: max(9rem, 12%); right: 6%; animation: floatA 7s ease-in-out -1.5s infinite; }
   .work-card.w3 { bottom: 20%; left: 8%; animation: floatA 6.5s ease-in-out -3s infinite; }
   .work-card.w4 { bottom: 22%; right: 8%; animation: floatA 5.5s ease-in-out -2s infinite; }
   @keyframes floatA {
@@ -1241,7 +1270,10 @@
     .cursor-dot, .cursor-ring { display: none; }
     nav { padding: 1rem 1.5rem; }
     .nav-tagline { display: none; }
-    .frame-hero { padding: 0 1.5rem 4rem; }
+    /* Push hero content up so hero-sub clears the absolute ticker.
+       Frame-hero is flex-end, so content stacks toward the bottom of
+       the frame. Bigger padding-bottom = content sits higher = no overlap. */
+    .frame-hero { padding: 0 1.5rem 11rem; }
     .hero-meta { left: 1.5rem; right: 1.5rem; top: 4rem; font-size: 0.6rem; }
     .frame-claim, .frame-pivot, .frame-ask { padding: 0 1.5rem; }
     /* Work cards on mobile: smaller, static (no animation), spaced to avoid overlap */
@@ -1251,10 +1283,10 @@
       /* Override the floating animation — too busy on small screens */
       animation: none !important;
     }
-    .work-card.w1 { top: 11%;    left: 3.5%;  }
-    .work-card.w2 { top: 11%;    right: 3.5%; }
-    .work-card.w3 { bottom: 22%; left: 3.5%;  }
-    .work-card.w4 { bottom: 22%; right: 3.5%; }
+    .work-card.w1 { top: 9rem;    left: 3.5%;  }
+    .work-card.w2 { top: 9rem;    right: 3.5%; }
+    .work-card.w3 { bottom: 20%;  left: 3.5%;  }
+    .work-card.w4 { bottom: 20%;  right: 3.5%; }
     .work-card .num { font-size: 0.55rem; margin-bottom: 0.4rem; }
     .work-card .live-signal { font-size: 0.45rem !important; margin-bottom: 0.4rem; }
     .work-card .title { font-size: 0.95rem; margin-bottom: 0.35rem; }
@@ -1343,29 +1375,29 @@
      Four highlight beats stage one at a time, ambient ticker runs along the bottom. -->
 <div class="cinematic-receipts" id="frameClaim">
 
-  <!-- Beat 1: 100/mo -->
+  <!-- Beat 1: 100/mo (solo — the volume statement that opens the receipts) -->
   <div class="cine-beat" data-beat="0">
     <div class="cine-num">100<span class="small">/mo</span></div>
     <div class="cine-label">sales in a single month.</div>
     <div class="cine-context">Top 6% of 500+ reps · Assurance IQ</div>
   </div>
 
-  <!-- Beat 2: 34% conversion -->
-  <div class="cine-beat" data-beat="1">
-    <div class="cine-num">34<span class="small">%</span></div>
-    <div class="cine-label">conversion rate.</div>
-    <div class="cine-context">The company averaged 16</div>
+  <!-- Beat 2: 34% + $60K (paired — the conversion stat and the commission stat together) -->
+  <div class="cine-beat credentials" data-beat="1">
+    <div class="cred">
+      <div class="cine-num">34<span class="small">%</span></div>
+      <div class="cine-label">conversion rate.</div>
+      <div class="cine-context">Company averaged 16</div>
+    </div>
+    <div class="cred">
+      <div class="cine-num">$60K</div>
+      <div class="cine-label">commission in two weeks. 4.5× team size.</div>
+      <div class="cine-context">Malama Solar · Honolulu</div>
+    </div>
   </div>
 
-  <!-- Beat 3: $60K in two weeks -->
-  <div class="cine-beat" data-beat="2">
-    <div class="cine-num">$60K</div>
-    <div class="cine-label">commission in two weeks. 4.5× the team's system size.</div>
-    <div class="cine-context">Malama Solar · Honolulu</div>
-  </div>
-
-  <!-- Beat 4: Credentials — MIT + ANGI side by side -->
-  <div class="cine-beat credentials" data-beat="3">
+  <!-- Beat 3: MIT + ANGI + UCF UpStarts (triad credentials — academic AI, sales floor, venture) -->
+  <div class="cine-beat credentials triad" data-beat="2">
     <div class="cred">
       <div class="cine-num">MIT</div>
       <div class="cine-label">Applied Data Science. Neural nets for sales forecasting.</div>
@@ -1374,13 +1406,11 @@
       <div class="cine-num">ANGI</div>
       <div class="cine-label">Top 10% in new hire class.</div>
     </div>
-  </div>
-
-  <!-- Beat 5: UCF UpStarts — the founder/VC track -->
-  <div class="cine-beat" data-beat="4">
-    <div class="cine-num">UCF UpStarts</div>
-    <div class="cine-label">Selective venture incubator. VC-mentored. Built pitch decks for investors.</div>
-    <div class="cine-context">~5 admitted per semester</div>
+    <div class="cred long">
+      <div class="cine-num">UpStarts</div>
+      <div class="cine-label">~5 admitted per semester. From 60,000 students.</div>
+      <div class="cine-context">UCF · VC-mentored · PE · Angel · Venture building</div>
+    </div>
   </div>
 
 </div>
