@@ -387,6 +387,37 @@
   .cine-reel-corner.snow .cine-reel-placeholder {
     background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%);
   }
+  /* YouTube thumbnail — fills the reel container, cropped via object-fit to
+     handle both vertical-short and 16:9 thumbnail aspect ratios cleanly. */
+  .cine-reel-thumb {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 1;
+    transition: opacity 0.3s;
+  }
+  /* When expanded, fade the thumbnail down so the iframe shows through */
+  .cine-reel-corner.expanded .cine-reel-thumb {
+    opacity: 0;
+  }
+  /* The injected iframe — fills the expanded reel, sits above thumbnail and overlay */
+  .cine-reel-iframe {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: 0;
+    background: #000;
+    z-index: 6;
+    opacity: 0;
+    transition: opacity 0.4s 0.2s; /* small delay so the expand animation can finish first */
+  }
+  .cine-reel-corner.expanded .cine-reel-iframe {
+    opacity: 1;
+  }
+  /* When expanded, hide the play icon (the iframe will show YouTube's own controls) */
+  .cine-reel-corner.expanded .cine-reel-play {
+    display: none;
+  }
   .cine-reel-overlay {
     position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.75) 100%);
@@ -640,19 +671,21 @@
   @media (max-width: 768px) {
     .scroll-indicator { display: none; }
 
-    /* Hero ticker — pinned near the bottom, just above the scroll cue. */
+    /* Hero ticker — pinned with safe distance above the scroll cue.
+       Even if it wraps to 2 lines on the smallest screens, it stays clear. */
     .hero-ticker {
       position: absolute;
-      bottom: 4.5rem;
+      bottom: 6.5rem;
       left: 1.5rem; right: 1.5rem;
       margin-top: 0;
       font-size: 0.55rem;
-      gap: 0.75rem;
+      gap: 0.6rem 1.1rem;
       justify-content: center;
       letter-spacing: 0.15em;
+      flex-wrap: wrap;
     }
-    .scroll-cue { bottom: 1.5rem; }
-    .scroll-cue::after { height: 28px; }
+    .scroll-cue { bottom: 1rem; }
+    .scroll-cue::after { height: 22px; }
 
     /* Beach ticker — make smaller and much less prominent on mobile */
     .beach-ticker {
@@ -838,13 +871,13 @@
     backdrop-filter: blur(28px);
     -webkit-backdrop-filter: blur(28px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    padding: 1.5rem 1.75rem;
+    padding: 1.1rem 1.4rem;
     text-decoration: none;
     color: #fff;
     cursor: none;
     transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s, border-color 0.3s;
     will-change: transform;
-    width: 260px;
+    width: 240px;
     border-radius: 4px;
     box-shadow: 0 16px 40px rgba(0,0,0,0.3);
   }
@@ -854,36 +887,45 @@
     transform: scale(1.04) translateY(-4px) !important;
   }
   .work-card .num {
-    font-family: var(--mono); font-size: 0.65rem;
+    font-family: var(--mono); font-size: 0.6rem;
     text-transform: uppercase; letter-spacing: 0.25em;
     color: var(--accent);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
   .work-card .title {
     font-family: var(--display); font-weight: 300;
-    font-size: 1.4rem; line-height: 1.15;
+    font-size: 1.25rem; line-height: 1.15;
     letter-spacing: -0.01em;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
   .work-card .title .italic { font-style: italic; }
   .work-card .desc {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     color: rgba(255,255,255,0.7);
-    margin-bottom: 1rem;
-    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    line-height: 1.45;
+    /* Clamp to 2 lines max — prevents long descriptions from making cards too tall */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .work-card .link {
-    font-family: var(--mono); font-size: 0.65rem;
+    font-family: var(--mono); font-size: 0.6rem;
     text-transform: uppercase; letter-spacing: 0.2em;
     color: rgba(255,255,255,0.7);
     display: flex; align-items: center; gap: 0.5rem;
     transition: color 0.3s;
   }
   .work-card:hover .link { color: var(--accent); }
-  .work-card.w1 { top: max(9rem, 14%); left: 6%; animation: floatA 6s ease-in-out infinite; }
-  .work-card.w2 { top: max(9rem, 12%); right: 6%; animation: floatA 7s ease-in-out -1.5s infinite; }
-  .work-card.w3 { bottom: 20%; left: 8%; animation: floatA 6.5s ease-in-out -3s infinite; }
-  .work-card.w4 { bottom: 22%; right: 8%; animation: floatA 5.5s ease-in-out -2s infinite; }
+  /* Hide description entirely on shorter viewports — cards stay compact */
+  @media (max-height: 820px) {
+    .work-card .desc { display: none; }
+  }
+  .work-card.w1 { top: max(9rem, 14%); left: 5%; animation: floatA 6s ease-in-out infinite; }
+  .work-card.w2 { top: max(9rem, 12%); right: 5%; animation: floatA 7s ease-in-out -1.5s infinite; }
+  .work-card.w3 { bottom: max(9rem, 14%); left: 7%; animation: floatA 6.5s ease-in-out -3s infinite; }
+  .work-card.w4 { bottom: max(9rem, 16%); right: 7%; animation: floatA 5.5s ease-in-out -2s infinite; }
   @keyframes floatA {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -1270,28 +1312,29 @@
     .cursor-dot, .cursor-ring { display: none; }
     nav { padding: 1rem 1.5rem; }
     .nav-tagline { display: none; }
-    /* Push hero content up so hero-sub clears the absolute ticker.
-       Frame-hero is flex-end, so content stacks toward the bottom of
-       the frame. Bigger padding-bottom = content sits higher = no overlap. */
-    .frame-hero { padding: 0 1.5rem 11rem; }
+    /* Push hero content up enough that hero-sub clears the ticker even
+       when ticker wraps to a second line on iPhone SE-class viewports. */
+    .frame-hero { padding: 0 1.5rem 12.5rem; }
     .hero-meta { left: 1.5rem; right: 1.5rem; top: 4rem; font-size: 0.6rem; }
     .frame-claim, .frame-pivot, .frame-ask { padding: 0 1.5rem; }
-    /* Work cards on mobile: smaller, static (no animation), spaced to avoid overlap */
+    /* Work cards on mobile: compact, static (no animation), no description.
+       Positioned so top and bottom cards have a safe gap between them. */
     .work-card {
       width: clamp(135px, 43vw, 175px);
-      padding: 0.7rem 0.9rem;
-      /* Override the floating animation — too busy on small screens */
+      padding: 0.65rem 0.85rem;
       animation: none !important;
     }
-    .work-card.w1 { top: 9rem;    left: 3.5%;  }
-    .work-card.w2 { top: 9rem;    right: 3.5%; }
-    .work-card.w3 { bottom: 20%;  left: 3.5%;  }
-    .work-card.w4 { bottom: 20%;  right: 3.5%; }
-    .work-card .num { font-size: 0.55rem; margin-bottom: 0.4rem; }
-    .work-card .live-signal { font-size: 0.45rem !important; margin-bottom: 0.4rem; }
-    .work-card .title { font-size: 0.95rem; margin-bottom: 0.35rem; }
-    .work-card .desc { font-size: 0.65rem; margin-bottom: 0.5rem; line-height: 1.4; }
-    .work-card .link { font-size: 0.55rem; }
+    .work-card.w1 { top: 8.5rem;  left: 3.5%;  }
+    .work-card.w2 { top: 8.5rem;  right: 3.5%; }
+    .work-card.w3 { bottom: 13%;  left: 3.5%;  }
+    .work-card.w4 { bottom: 13%;  right: 3.5%; }
+    .work-card .num { font-size: 0.52rem; margin-bottom: 0.35rem; }
+    .work-card .live-signal { font-size: 0.45rem !important; margin-bottom: 0.35rem; }
+    .work-card .title { font-size: 0.9rem; margin-bottom: 0.35rem; }
+    /* Description hidden on mobile — keeps cards short enough that w1 and w3
+       never collide vertically on small viewports. */
+    .work-card .desc { display: none !important; }
+    .work-card .link { font-size: 0.5rem; }
     .receipts-section { padding: 6rem 1.5rem 5rem; }
     .receipts-grid { grid-template-columns: 1fr; gap: 1rem; }
     .receipt-card { padding: 2rem 1.5rem; min-height: 240px; }
@@ -1361,10 +1404,11 @@
   </h1>
   <div class="hero-sub">A top closer who envisions the future and actively builds it.</div>
   <!-- V2: Live ticker — plants closer-credentials in 3 seconds -->
-  <!-- Volume ticker — no time references (rate-based stats stay accurate without updates) -->
+  <!-- Volume ticker — no time references (rate-based stats stay accurate without updates).
+       Shortened on mobile so it fits one line. -->
   <div class="hero-ticker">
-    <span class="tick"><span class="pulse"></span> <span><span class="num">~150</span> dials per day</span></span>
-    <span class="tick"><span><span class="num">10</span> pitches per day</span></span>
+    <span class="tick"><span class="pulse"></span> <span><span class="num">150</span> dials</span></span>
+    <span class="tick"><span><span class="num">10</span> pitches</span></span>
     <span class="tick"><span><span class="num">4hr</span> talk time</span></span>
   </div>
   <div class="scroll-cue">Scroll to begin</div>
@@ -1429,28 +1473,28 @@
     <div class="num">01 / Product</div>
     <div class="live-signal"><span class="dot"></span> Last commit: 3d ago</div>
     <div class="title">CRM SaaS <span class="italic">Prototype</span></div>
-    <div class="desc">Production-grade workflow platform with guided scripts and operational dashboards.</div>
+    <div class="desc">Workflow platform with guided scripts and dashboards.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
   <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="work-card w2">
     <div class="num">02 / Code</div>
     <div class="live-signal"><span class="dot"></span> Last paper trade: 2h ago</div>
     <div class="title">Autonomous <span class="italic">Trading Bots</span></div>
-    <div class="desc">RSI, MACD, EMA, VWAP signal logic with risk management and paper-trading sims. Python.</div>
+    <div class="desc">RSI, MACD, EMA, VWAP signals. Risk management + paper trading. Python.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
   <a href="#" class="work-card w3">
     <div class="num">03 / AI</div>
     <div class="live-signal"><span class="dot"></span> Rebuilding · 12% complete</div>
     <div class="title">Sales Forecasting <span class="italic">Neural Net</span></div>
-    <div class="desc">MIT Applied Data Science capstone. Predictive model for sales conversion.</div>
+    <div class="desc">MIT capstone. Predictive model for sales conversion.</div>
     <div class="link">Rebuilding ↗</div>
   </a>
   <a href="https://website-stuff-puce.vercel.app/" target="_blank" rel="noopener" class="work-card w4">
     <div class="num">04 / Web</div>
     <div class="live-signal"><span class="dot"></span> Live · 99.9% uptime</div>
     <div class="title">Modern <span class="italic">POS Site</span></div>
-    <div class="desc">Designed and built the workflow + UI. Connected directly to Square POS.</div>
+    <div class="desc">Custom workflow + UI. Connected to Square POS.</div>
     <div class="link">Live site ↗</div>
   </a>
 </div>
@@ -1466,9 +1510,9 @@
     <div class="reels-tagline">What I shoot when I'm not closing.</div>
   </div>
 
-  <!-- Bottom-left corner: Surf reel -->
-  <div class="cine-reel-corner left surf" id="reelSurf">
-    <div class="cine-reel-placeholder">[ Surf · 15s<br>tap to view ]</div>
+  <!-- Bottom-left corner: Surf reel (YouTube Short BUNZISaYgg4) -->
+  <div class="cine-reel-corner left surf" id="reelSurf" data-yt="BUNZISaYgg4">
+    <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/BUNZISaYgg4/hqdefault.jpg" alt="Saltwater surf reel" loading="lazy">
     <div class="cine-reel-overlay"></div>
     <div class="cine-reel-play"></div>
     <div class="cine-reel-meta">
@@ -1478,9 +1522,9 @@
     <button class="cine-reel-close" aria-label="Collapse">×</button>
   </div>
 
-  <!-- Bottom-right corner: Snow reel -->
-  <div class="cine-reel-corner right snow" id="reelSnow">
-    <div class="cine-reel-placeholder">[ Snow · 15s<br>tap to view ]</div>
+  <!-- Bottom-right corner: Snow reel (YouTube nwze4638SV0) -->
+  <div class="cine-reel-corner right snow" id="reelSnow" data-yt="nwze4638SV0">
+    <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/nwze4638SV0/hqdefault.jpg" alt="Cold lines snow reel" loading="lazy">
     <div class="cine-reel-overlay"></div>
     <div class="cine-reel-play"></div>
     <div class="cine-reel-meta">
@@ -1798,18 +1842,44 @@
     });
   });
 
-  // ============ V2: REEL EXPAND-ON-CLICK (Act 4) ============
+  // ============ V2: REEL EXPAND-ON-CLICK with YouTube embed (Act 4) ============
   /*
-    The two reels live as small corner thumbnails. Clicking one expands
-    it in place. The other reel dims to recede. Click the × button or
-    anywhere outside to collapse.
+    Each reel has a data-yt attribute with a YouTube video ID. When the reel
+    is expanded, we inject an <iframe> pointing at the YouTube embed with
+    autoplay=1. When the reel is collapsed, we REMOVE the iframe so playback
+    stops (just hiding it would keep audio playing).
 
-    When you replace the placeholder divs with real <video> elements,
-    you can wire video.play() into the click handler so videos start
-    playing only when expanded.
+    Vertical YouTube Shorts and regular 16:9 videos both work — YouTube's
+    own embed player handles the aspect ratio inside the iframe.
   */
   const reels = document.querySelectorAll('.cine-reel-corner');
   const reelsContainer = document.getElementById('framePivot');
+
+  function embedReel(reel) {
+    if (reel.querySelector('iframe.cine-reel-iframe')) return; // already embedded
+    const videoId = reel.dataset.yt;
+    if (!videoId) return;
+    const iframe = document.createElement('iframe');
+    iframe.className = 'cine-reel-iframe';
+    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+    iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('title', reel.querySelector('.cine-reel-title')?.textContent || 'Reel');
+    reel.appendChild(iframe);
+  }
+
+  function unembedReel(reel) {
+    const iframe = reel.querySelector('iframe.cine-reel-iframe');
+    if (iframe) iframe.remove();
+  }
+
+  function collapseAll() {
+    reels.forEach(r => {
+      r.classList.remove('expanded');
+      unembedReel(r);
+    });
+    reelsContainer.classList.remove('has-expanded');
+  }
 
   reels.forEach(reel => {
     reel.addEventListener('click', (e) => {
@@ -1817,14 +1887,13 @@
       if (e.target.classList.contains('cine-reel-close')) return;
       e.stopPropagation();
 
-      // Toggle: if already expanded, collapse. Otherwise expand this one.
       const wasExpanded = reel.classList.contains('expanded');
-      reels.forEach(r => r.classList.remove('expanded'));
-      reelsContainer.classList.remove('has-expanded');
+      collapseAll();
 
       if (!wasExpanded) {
         reel.classList.add('expanded');
         reelsContainer.classList.add('has-expanded');
+        embedReel(reel);
       }
     });
   });
@@ -1833,16 +1902,14 @@
   document.querySelectorAll('.cine-reel-close').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      reels.forEach(r => r.classList.remove('expanded'));
-      reelsContainer.classList.remove('has-expanded');
+      collapseAll();
     });
   });
 
   // Click anywhere outside the reels collapses them
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.cine-reel-corner')) {
-      reels.forEach(r => r.classList.remove('expanded'));
-      reelsContainer.classList.remove('has-expanded');
+      collapseAll();
     }
   });
 
