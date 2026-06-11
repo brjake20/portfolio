@@ -116,7 +116,41 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  /* ============ V2 ADDITIONS ============ */
+  /* ===================================================================
+     BULLETPROOF POINTER-EVENTS — prevents ghost clicks across frames
+
+     Problem: all cinematic frames are position: fixed and stacked. When
+     scrolling through Acts, the frames opacity-fade in/out but their DOM
+     remains. Without strict pointer-events control, you can click links
+     in hidden frames (e.g. clicking where a contact pill WILL be while
+     watching Act 4 jumps you to that link).
+
+     Solution: every frame container is pointer-events: none unless it
+     has .active, AND every interactive descendant is none unless its
+     parent frame is active. Uses !important to defeat any inheritance.
+     =================================================================== */
+  .cinematic-receipts:not(.active),
+  .frame-work:not(.active),
+  .cinematic-reels:not(.active),
+  .frame-ask:not(.active) {
+    pointer-events: none !important;
+  }
+  .cinematic-receipts:not(.active) *,
+  .frame-work:not(.active) *,
+  .cinematic-reels:not(.active) *,
+  .frame-ask:not(.active) * {
+    pointer-events: none !important;
+  }
+  /* When a frame IS active, its specific interactive children become clickable */
+  .frame-work.active .work-card,
+  .cinematic-reels.active .cine-reel-corner,
+  .cinematic-reels.active .cine-reel-corner *,
+  .frame-ask.active .seg-pill,
+  .frame-ask.active .contact-pill,
+  .frame-ask.active .contact-pill * {
+    pointer-events: auto !important;
+  }
+
 
   /* === CINEMATIC RECEIPTS (Act 2) ===
      Replace the static claim with staged film-credit-style numbers.
@@ -292,10 +326,23 @@
     text-shadow: 0 4px 24px rgba(0,0,0,0.6);
   }
 
-  /* The corner thumbnails — small by default */
-  .cine-reel-corner {
+  /* The reels strip — four thumbnails in a row, centered at the bottom */
+  .reels-strip {
     position: absolute;
-    width: 140px;
+    left: 50%;
+    bottom: 3rem;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 6;
+  }
+
+  /* Each thumbnail — small by default, position handled by flex parent */
+  .cine-reel-corner {
+    position: relative;
+    width: 130px;
     aspect-ratio: 9 / 16;
     background: rgba(8, 18, 28, 0.55);
     backdrop-filter: blur(20px);
@@ -306,38 +353,52 @@
     cursor: none;
     box-shadow: 0 16px 40px rgba(0,0,0,0.4);
     transition:
-      width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-      bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-      left 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-      right 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      height 0.5s cubic-bezier(0.16, 1, 0.3, 1),
       transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
       border-color 0.4s,
       box-shadow 0.4s,
       opacity 0.4s;
-    z-index: 6;
+    flex: 0 0 auto;
   }
-  .cine-reel-corner.left  { bottom: 3rem; left: 3rem;  }
-  .cine-reel-corner.right { bottom: 3rem; right: 3rem; }
   .cine-reel-corner:hover {
     border-color: rgba(232, 213, 160, 0.5);
     transform: translateY(-4px);
   }
 
-  /* Expanded state — reel grows in place from its corner */
+  /* Expanded state — reel jumps out of the strip, centers in the viewport,
+     and is sized by HEIGHT (not width) so 9:16 vertical videos never exceed
+     the viewport on tall narrow desktop windows. */
   .cine-reel-corner.expanded {
-    width: clamp(280px, 30vw, 380px);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: min(70vh, 640px);
+    width: auto;          /* aspect-ratio handles the width */
+    aspect-ratio: 9 / 16;
     border-color: var(--accent);
-    box-shadow: 0 28px 80px rgba(0,0,0,0.55);
-    z-index: 7;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.7);
+    z-index: 20;
   }
   .cine-reel-corner.expanded:hover {
-    transform: none;
+    transform: translate(-50%, -50%);
   }
 
-  /* When one is expanded, the other recedes slightly */
+  /* When one is expanded, the others recede meaningfully so the expanded
+     reel feels like THE focal point. */
   .cinematic-reels.has-expanded .cine-reel-corner:not(.expanded) {
-    opacity: 0.45;
-    transform: scale(0.92);
+    opacity: 0.25;
+    transform: scale(0.85);
+    pointer-events: none;
+  }
+  /* And dim a backdrop behind the expanded reel */
+  .cinematic-reels.has-expanded::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 19;
+    pointer-events: none;
   }
 
   /* The close (×) button — only visible when expanded */
@@ -700,10 +761,25 @@
 
     .seg-pill { padding: 0.65rem 1rem; font-size: 0.6rem; }
     .work-card .live-signal { font-size: 0.5rem; }
-    .cine-reel-corner { width: 90px; }
-    .cine-reel-corner.left  { bottom: 1.5rem; left: 1.5rem;  }
-    .cine-reel-corner.right { bottom: 1.5rem; right: 1.5rem; }
-    .cine-reel-corner.expanded { width: clamp(180px, 50vw, 240px); }
+
+    /* Reels on mobile — 4-up strip stays a row, but tighter spacing
+       so they all fit on the narrowest viewports. */
+    .reels-strip {
+      gap: 0.4rem;
+      bottom: 2rem;
+      padding: 0 0.5rem;
+      width: 100%;
+    }
+    .cine-reel-corner {
+      width: clamp(60px, 22vw, 90px);
+    }
+    /* Expanded reel on mobile: significantly bigger as requested.
+       Sized by viewport height so 9:16 video fits comfortably without
+       overflowing the screen top or bottom. */
+    .cine-reel-corner.expanded {
+      height: min(72vh, 600px);
+      width: auto;
+    }
     .reels-text { top: 14%; }
     .cine-reel-title { font-size: 0.7rem; }
     .cine-reel-corner.expanded .cine-reel-title { font-size: 1rem; }
@@ -1500,8 +1576,8 @@
 </div>
 
 <!-- ====== ACT 4: CINEMATIC REELS (10-13s, breakthrough into open ocean) ====== -->
-<!-- Reels live as small thumbnails in the bottom corners so the open ocean
-     scene breathes. Click a thumbnail to expand it in place. -->
+<!-- Reels live as a four-up row at the bottom of the frame, like a film strip
+     across the open ocean scene. Click any thumbnail to expand it. -->
 <div class="cinematic-reels" id="framePivot">
 
   <!-- Center text overlay -->
@@ -1510,28 +1586,49 @@
     <div class="reels-tagline">What I shoot when I'm not closing.</div>
   </div>
 
-  <!-- Bottom-left corner: Surf reel (YouTube Short BUNZISaYgg4) -->
-  <div class="cine-reel-corner left surf" id="reelSurf" data-yt="BUNZISaYgg4">
-    <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/BUNZISaYgg4/hqdefault.jpg" alt="Saltwater surf reel" loading="lazy">
-    <div class="cine-reel-overlay"></div>
-    <div class="cine-reel-play"></div>
-    <div class="cine-reel-meta">
-      <div class="cine-reel-tag">Surf · 15s</div>
-      <div class="cine-reel-title">Saltwater</div>
-    </div>
-    <button class="cine-reel-close" aria-label="Collapse">×</button>
-  </div>
+  <!-- Reels row — four YouTube Shorts -->
+  <div class="reels-strip">
 
-  <!-- Bottom-right corner: Snow reel (YouTube nwze4638SV0) -->
-  <div class="cine-reel-corner right snow" id="reelSnow" data-yt="nwze4638SV0">
-    <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/nwze4638SV0/hqdefault.jpg" alt="Cold lines snow reel" loading="lazy">
-    <div class="cine-reel-overlay"></div>
-    <div class="cine-reel-play"></div>
-    <div class="cine-reel-meta">
-      <div class="cine-reel-tag">Snow · 15s</div>
-      <div class="cine-reel-title">Cold lines</div>
+    <div class="cine-reel-corner" data-yt="q3-0Ch6Ssv4">
+      <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/q3-0Ch6Ssv4/hqdefault.jpg" alt="Reel one" loading="lazy">
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Reel · 01</div>
+      </div>
+      <button class="cine-reel-close" aria-label="Collapse">×</button>
     </div>
-    <button class="cine-reel-close" aria-label="Collapse">×</button>
+
+    <div class="cine-reel-corner" data-yt="BUNZISaYgg4">
+      <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/BUNZISaYgg4/hqdefault.jpg" alt="Reel two" loading="lazy">
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Reel · 02</div>
+      </div>
+      <button class="cine-reel-close" aria-label="Collapse">×</button>
+    </div>
+
+    <div class="cine-reel-corner" data-yt="G8UREbGJt0g">
+      <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/G8UREbGJt0g/hqdefault.jpg" alt="Reel three" loading="lazy">
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Reel · 03</div>
+      </div>
+      <button class="cine-reel-close" aria-label="Collapse">×</button>
+    </div>
+
+    <div class="cine-reel-corner" data-yt="4rgRDMMKJzE">
+      <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/4rgRDMMKJzE/hqdefault.jpg" alt="Reel four" loading="lazy">
+      <div class="cine-reel-overlay"></div>
+      <div class="cine-reel-play"></div>
+      <div class="cine-reel-meta">
+        <div class="cine-reel-tag">Reel · 04</div>
+      </div>
+      <button class="cine-reel-close" aria-label="Collapse">×</button>
+    </div>
+
   </div>
 
 </div>
@@ -1906,8 +2003,11 @@
     });
   });
 
-  // Click anywhere outside the reels collapses them
+  // Click anywhere outside the reels collapses them — but ONLY when the
+  // reels frame is currently the active act. Otherwise we'd interfere
+  // with other acts' clicks.
   document.addEventListener('click', (e) => {
+    if (!reelsContainer.classList.contains('active')) return;
     if (!e.target.closest('.cine-reel-corner')) {
       collapseAll();
     }
