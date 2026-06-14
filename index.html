@@ -1483,8 +1483,10 @@
     class="scrub-video"
     id="scrubVideo"
     src="portfolio_background.mp4"
+    autoplay
     muted
     playsinline
+    webkit-playsinline
     preload="auto"
     crossorigin="anonymous"
     disablepictureinpicture
@@ -1749,6 +1751,50 @@
     const fadeOut = mapRange(progress, outStart, outEnd, 1, 0);
     return Math.min(fadeIn, fadeOut);
   };
+
+  // ============ MOBILE VIDEO UNLOCK ============
+  /*
+    On iOS Safari (and some Android browsers), a <video> element won't
+    render any frames via video.currentTime until it has been "played"
+    at least once. Without this unlock, the background appears as a
+    black box on mobile even though the file is loaded.
+
+    Strategy:
+    1. The `autoplay` attribute on the video tag tries to start playback
+       on load (allowed for muted+playsinline videos on most modern browsers)
+    2. The 'play' event fires when playback actually starts — we then
+       immediately pause and reset, leaving the video in a state where
+       currentTime scrubbing works
+    3. If autoplay is blocked (some strict configs), we listen for any
+       user interaction (touch, click, scroll wheel) and trigger play()
+       manually — which IS allowed inside a user gesture
+  */
+  video.addEventListener('play', () => {
+    if (!video._unlocked) {
+      video._unlocked = true;
+      // Tiny delay so the first frame is fully decoded, then freeze for scrubbing
+      setTimeout(() => {
+        video.pause();
+        video.currentTime = 0;
+      }, 80);
+    }
+  });
+
+  async function tryUnlockVideo() {
+    if (video._unlocked) return;
+    try {
+      video.muted = true; // belt-and-suspenders
+      await video.play();
+      // The 'play' event handler above will pause + reset
+    } catch (e) {
+      // Autoplay blocked here — will retry on next user interaction
+    }
+  }
+
+  // Fallback: any user interaction unlocks the video
+  ['touchstart', 'touchend', 'touchmove', 'click', 'wheel', 'scroll'].forEach(ev => {
+    window.addEventListener(ev, tryUnlockVideo, { passive: true });
+  });
 
   // Hide loader once the video can play through
   let videoReady = false;
