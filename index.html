@@ -388,6 +388,16 @@
     transform: translate(-50%, -50%);
   }
 
+  /* When a reel is expanded for playback, force the entire reels frame
+     to full opacity. The scroll handler normally controls .cinematic-reels
+     opacity based on scroll progress (Act 4's fade-in/fade-out), but CSS
+     opacity multiplies down to all children — so a partially-faded parent
+     would make the YouTube iframe inside the expanded reel appear
+     transparent. The !important defeats the inline opacity set by JS. */
+  .cinematic-reels.has-expanded {
+    opacity: 1 !important;
+  }
+
   /* When one is expanded, the others recede meaningfully so the expanded
      reel feels like THE focal point. */
   .cinematic-reels.has-expanded .cine-reel-corner:not(.expanded) {
