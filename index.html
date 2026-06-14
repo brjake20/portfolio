@@ -326,12 +326,15 @@
     text-shadow: 0 4px 24px rgba(0,0,0,0.6);
   }
 
-  /* The reels strip — four thumbnails in a row, centered at the bottom */
+  /* The reels strip — four thumbnails in a row, centered at the bottom.
+     IMPORTANT: NO transform here. Any transform on this element would
+     create a containing block for the expanded reel's position: fixed,
+     which would prevent it from centering in the viewport correctly. */
   .reels-strip {
     position: absolute;
-    left: 50%;
+    left: 0;
+    right: 0;
     bottom: 3rem;
-    transform: translateX(-50%);
     display: flex;
     gap: 1rem;
     align-items: flex-end;
