@@ -388,6 +388,15 @@
     transform: translate(-50%, -50%);
   }
 
+  /* When a reel is expanded for playback, lock body scroll. User must
+     close the video (× button, click outside, or click another reel) to
+     resume scrolling. Prevents accidentally scrolling out of Act 4 while
+     watching. */
+  body.reel-locked {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   /* When a reel is expanded for playback, force the entire reels frame
      to full opacity. The scroll handler normally controls .cinematic-reels
      opacity based on scroll progress (Act 4's fade-in/fade-out), but CSS
@@ -473,24 +482,29 @@
   }
   /* When expanded, fade the thumbnail down so the iframe shows through */
   .cine-reel-corner.expanded .cine-reel-thumb {
-    opacity: 0;
+    display: none !important;
   }
-  /* The injected iframe — fills the expanded reel, sits above thumbnail and overlay */
+  /* The injected iframe — fills the expanded reel, sits above everything */
   .cine-reel-iframe {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     border: 0;
     background: #000;
-    z-index: 6;
-    opacity: 0;
-    transition: opacity 0.4s 0.2s; /* small delay so the expand animation can finish first */
+    z-index: 100;  /* far above all sibling chrome */
   }
-  .cine-reel-corner.expanded .cine-reel-iframe {
-    opacity: 1;
+  /* When the reel is expanded, kill everything that could dim the iframe.
+     The expanded reel becomes just a frame around the YouTube player.
+     The translucent background, backdrop-filter blur, overlay gradient,
+     and metadata all hide so the video plays at full color/quality. */
+  .cine-reel-corner.expanded {
+    background: #000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
-  /* When expanded, hide the play icon (the iframe will show YouTube's own controls) */
+  .cine-reel-corner.expanded .cine-reel-overlay,
+  .cine-reel-corner.expanded .cine-reel-meta,
   .cine-reel-corner.expanded .cine-reel-play {
-    display: none;
+    display: none !important;
   }
   .cine-reel-overlay {
     position: absolute; inset: 0;
@@ -1989,6 +2003,7 @@
       unembedReel(r);
     });
     reelsContainer.classList.remove('has-expanded');
+    document.body.classList.remove('reel-locked');
   }
 
   reels.forEach(reel => {
@@ -2004,6 +2019,9 @@
         reel.classList.add('expanded');
         reelsContainer.classList.add('has-expanded');
         embedReel(reel);
+        // Lock body scroll while video is playing — user must close
+        // the player to scroll again
+        document.body.classList.add('reel-locked');
       }
     });
   });
