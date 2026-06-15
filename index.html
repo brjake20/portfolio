@@ -4,6 +4,24 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Brandon Tamisin — Closing today. Building tomorrow.</title>
+
+<!-- ============ SEO & SOCIAL SHARING ============ -->
+<meta name="description" content="Brandon Tamisin — sales operator and AI-fluent builder. Top closer at Angi, MIT Applied Data Science, UCF UpStarts venture incubator alum. Closing today. Building tomorrow.">
+<meta name="author" content="Brandon Tamisin">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="color-scheme" content="dark">
+
+<!-- Open Graph (LinkedIn, Facebook, Slack, iMessage previews) -->
+<meta property="og:title" content="Brandon Tamisin — Closing today. Building tomorrow.">
+<meta property="og:description" content="Top closer + AI-fluent operator. MIT Applied Data Science. Angi sales floor. UCF UpStarts venture incubator. A portfolio of work and proof.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="favicon.svg">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Brandon Tamisin — Closing today. Building tomorrow.">
+<meta name="twitter:description" content="Top closer + AI-fluent operator. The bridge between sales and what's next.">
+
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,6 +156,43 @@
   .frame-ask.active .contact-pill,
   .frame-ask.active .contact-pill * {
     pointer-events: auto !important;
+  }
+
+  /* If the video fails to load, the poster image becomes the static
+     background and the cinematic frames don't move. The site is still
+     usable — receipts, work cards, segmenter all visible. */
+  body.video-failed .scrub-video {
+    display: none;
+  }
+  body.video-failed .stage {
+    background-image: url('poster.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  /* When video fails, scroll indicators and scroll cues are misleading
+     (nothing's going to scrub), so suppress them */
+  body.video-failed .scroll-indicator,
+  body.video-failed .scroll-cue {
+    display: none;
+  }
+
+  /* ============ REDUCED-MOTION SUPPORT ============
+     Honors the user's OS-level "reduce motion" accessibility preference.
+     Disables decorative animations (floating cards, pulsing dots, hero
+     text reveal, ticker pulse) while keeping the core cinematic functional.
+     The scroll-scrubbed video still works because it's user-driven, not
+     auto-animated — they get a slightly less dynamic experience but the
+     content all functions. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.15s !important;
+    }
+    /* Keep the cinematic scroll transitions functional but instant */
+    .frame-hero, .cinematic-receipts, .frame-work, .cinematic-reels, .frame-ask {
+      transition: opacity 0.15s !important;
+    }
   }
 
   /* ============ GPU LAYER PROMOTION ============
@@ -459,22 +514,6 @@
     border-color: var(--accent);
   }
 
-  /* The placeholder inside (will be replaced with actual <video>) */
-  .cine-reel-placeholder {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 0.55rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.65);
-    text-align: center; padding: 0.5rem;
-    z-index: 1;
-  }
-  .cine-reel-corner.surf .cine-reel-placeholder {
-    background: linear-gradient(180deg, #3a7a9a 0%, #1a4a6a 50%, #0a2a4a 100%);
-  }
-  .cine-reel-corner.snow .cine-reel-placeholder {
-    background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%);
-  }
   /* YouTube thumbnail — fills the reel container, cropped via object-fit to
      handle both vertical-short and 16:9 thumbnail aspect ratios cleanly. */
   .cine-reel-thumb {
@@ -944,24 +983,6 @@
     pointer-events: none; opacity: 0;
     will-change: opacity, transform;
   }
-  .claim-text {
-    font-family: var(--display); font-weight: 300;
-    font-size: clamp(2rem, 5vw, 4rem);
-    line-height: 1.2; letter-spacing: -0.02em;
-    color: #fff;
-    text-shadow: 0 6px 40px rgba(0,0,0,0.7);
-    text-align: center;
-    max-width: 1100px;
-  }
-  .claim-text .accent { color: var(--accent); font-style: italic; }
-  .claim-eyebrow {
-    font-family: var(--mono); font-size: 0.7rem;
-    text-transform: uppercase; letter-spacing: 0.3em;
-    color: var(--accent);
-    text-align: center;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
-  }
 
   /* =========================================================
      ACT 3 — WORK CARDS (7-10s: inside the tube wave)
@@ -993,6 +1014,13 @@
     background: rgba(232, 213, 160, 0.15);
     border-color: var(--accent);
     transform: scale(1.04) translateY(-4px) !important;
+  }
+  /* Rebuilding card — not clickable yet, no hover lift */
+  .work-card[data-rebuilding]:hover {
+    background: rgba(8, 18, 28, 0.65);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: none !important;
+    cursor: default;
   }
   .work-card .num {
     font-family: var(--mono); font-size: 0.6rem;
@@ -1058,17 +1086,6 @@
     pointer-events: none; opacity: 0;
     will-change: opacity, transform;
   }
-  .pivot-text {
-    font-family: var(--display); font-weight: 300;
-    font-style: italic;
-    font-size: clamp(3rem, 9vw, 8rem);
-    line-height: 1; letter-spacing: -0.03em;
-    color: #fff;
-    text-shadow: 0 6px 50px rgba(0,0,0,0.6);
-    text-align: center;
-  }
-  .pivot-text .accent { color: var(--accent); }
-
   /* =========================================================
      ACT 5 — ASK (13-15s: open ocean / horizon)
      ========================================================= */
@@ -1088,21 +1105,6 @@
     margin-bottom: 1.5rem;
     text-shadow: 0 2px 12px rgba(0,0,0,0.5);
   }
-  .ask-invitations {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-  .ask-invitations p {
-    font-family: var(--display); font-weight: 300;
-    font-size: clamp(1.4rem, 2.8vw, 2.3rem);
-    line-height: 1.4;
-    letter-spacing: -0.01em;
-    color: #fff;
-    text-shadow: 0 4px 30px rgba(0,0,0,0.6);
-    margin-bottom: 0.5rem;
-  }
-  .ask-invitations p .italic { font-style: italic; color: var(--accent); }
-  .ask-invitations p:last-child { margin-bottom: 0; }
   .contact-grid {
     display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
     pointer-events: auto;
@@ -1145,276 +1147,6 @@
     transform-origin: top;
   }
 
-  /* =========================================================
-     CONTENT SECTIONS (below the cinematic)
-     ========================================================= */
-  .content { position: relative; z-index: 5; background: var(--bg); }
-
-  /* === RECEIPTS GRID === */
-  .receipts-section { padding: 10rem 3rem 8rem; position: relative; }
-  .section-eyebrow {
-    font-family: var(--mono); font-size: 0.7rem;
-    text-transform: uppercase; letter-spacing: 0.3em;
-    color: var(--accent);
-    margin-bottom: 1.5rem;
-  }
-  .section-title {
-    font-family: var(--display); font-weight: 300;
-    font-size: clamp(2.5rem, 5.5vw, 4.5rem);
-    line-height: 1; letter-spacing: -0.03em;
-    margin-bottom: 1rem;
-    max-width: 900px;
-  }
-  .section-title .italic { font-style: italic; color: var(--accent); }
-  .section-subtitle {
-    font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(1.1rem, 1.6vw, 1.4rem);
-    color: var(--fg-dim);
-    max-width: 600px;
-    margin-bottom: 5rem;
-  }
-  .receipts-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  .receipt-card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 2.5rem 2rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.4s, background 0.4s, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: none;
-    min-height: 280px;
-    display: flex; flex-direction: column; justify-content: space-between;
-  }
-  .receipt-card::before {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0; transition: opacity 0.4s;
-  }
-  .receipt-card:hover {
-    background: linear-gradient(180deg, rgba(232,213,160,0.06) 0%, rgba(255,255,255,0.02) 100%);
-    border-color: rgba(232, 213, 160, 0.3);
-    transform: translateY(-4px);
-  }
-  .receipt-card:hover::before { opacity: 1; }
-  .receipt-card .index {
-    font-family: var(--mono); font-size: 0.65rem;
-    text-transform: uppercase; letter-spacing: 0.25em;
-    color: var(--accent);
-    margin-bottom: 0.5rem;
-    display: flex; align-items: center; gap: 0.75rem;
-  }
-  .receipt-card .index::before {
-    content: ''; width: 6px; height: 6px;
-    background: var(--accent); border-radius: 50%;
-    display: inline-block;
-  }
-  .receipt-card .category {
-    font-family: var(--mono); font-size: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: var(--fg-mute);
-    margin-bottom: 1.5rem;
-  }
-  .receipt-card .big-num {
-    font-family: var(--display); font-weight: 300;
-    font-size: clamp(3.5rem, 6vw, 5.5rem);
-    line-height: 0.9; letter-spacing: -0.04em;
-    color: #fff;
-    margin-bottom: 1rem;
-  }
-  .receipt-card .big-num .unit {
-    font-size: 0.4em; color: var(--accent);
-    font-style: italic; letter-spacing: -0.02em;
-  }
-  .receipt-card .label {
-    font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(1rem, 1.3vw, 1.2rem);
-    color: rgba(255,255,255,0.95);
-    line-height: 1.4; margin-bottom: 0.75rem;
-  }
-  .receipt-card .context {
-    font-family: var(--mono); font-size: 0.65rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: var(--fg-dim);
-  }
-
-  /* === VOICE + TASTE TRIPTYCH === */
-  .triptych-section { padding: 8rem 3rem 10rem; position: relative; }
-  .triptych {
-    display: grid;
-    grid-template-columns: 1fr 2.2fr 1fr;
-    gap: 1.5rem; align-items: center;
-    max-width: 1400px; margin: 0 auto;
-  }
-  .reel {
-    aspect-ratio: 9 / 16;
-    background: rgba(15, 25, 30, 0.85);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    position: relative; overflow: hidden;
-    cursor: none;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-  }
-  .reel:hover { transform: scale(1.03) translateY(-6px); border-color: rgba(232, 213, 160, 0.4); }
-  .reel-placeholder {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.4);
-    font-family: var(--mono); font-size: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    text-align: center; padding: 1rem;
-    z-index: 1;
-  }
-  .reel.surf .reel-placeholder { background: linear-gradient(180deg, #3a7a9a 0%, #1a4a6a 50%, #0a2a4a 100%); }
-  .reel.snow .reel-placeholder { background: linear-gradient(180deg, #a8c5d8 0%, #6a8aa8 50%, #2a4a6a 100%); }
-  .reel-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7) 100%);
-    z-index: 2; pointer-events: none;
-  }
-  .reel-meta {
-    position: absolute; bottom: 1rem; left: 1rem; right: 1rem;
-    z-index: 3;
-  }
-  .reel-tag {
-    font-family: var(--mono); font-size: 0.55rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: var(--accent);
-    margin-bottom: 0.25rem;
-  }
-  .reel-title {
-    font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
-    color: #fff; letter-spacing: -0.02em; line-height: 1.1;
-  }
-  .reel-play-icon {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-    border: 1.5px solid rgba(255,255,255,0.7);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 3;
-    transition: transform 0.3s, background 0.3s;
-  }
-  .reel:hover .reel-play-icon {
-    transform: translate(-50%, -50%) scale(1.15);
-    background: rgba(232, 213, 160, 0.3);
-    border-color: var(--accent);
-  }
-  .reel-play-icon::after {
-    content: '';
-    width: 0; height: 0;
-    border-left: 11px solid #fff;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
-    margin-left: 3px;
-  }
-  .loom-card {
-    aspect-ratio: 16 / 10;
-    background: rgba(15, 25, 30, 0.85);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    position: relative; overflow: hidden;
-    cursor: none;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
-  }
-  .loom-card:hover { transform: scale(1.02) translateY(-4px); border-color: rgba(232, 213, 160, 0.4); }
-  .loom-placeholder {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(circle at 30% 40%, rgba(232,213,160,0.08) 0%, transparent 50%),
-      radial-gradient(circle at 70% 60%, rgba(217,119,87,0.08) 0%, transparent 50%),
-      linear-gradient(135deg, #0d2a3a 0%, #1a3a4a 50%, #0d2a3a 100%);
-    z-index: 1;
-  }
-  .loom-overlay {
-    position: absolute; inset: 0; z-index: 2;
-    display: flex; flex-direction: column; justify-content: space-between;
-    padding: 2rem;
-  }
-  .loom-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .loom-tag {
-    font-family: var(--mono); font-size: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.25em;
-    color: var(--accent);
-  }
-  .loom-duration {
-    font-family: var(--mono); font-size: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: rgba(255,255,255,0.7);
-    padding: 0.35rem 0.65rem;
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 2px;
-  }
-  .loom-play-btn {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 88px; height: 88px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 2px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 3;
-    transition: transform 0.3s, background 0.3s;
-  }
-  .loom-card:hover .loom-play-btn {
-    transform: translate(-50%, -50%) scale(1.1);
-    background: rgba(232,213,160,0.3);
-  }
-  .loom-play-btn::after {
-    content: '';
-    width: 0; height: 0;
-    border-left: 22px solid var(--accent);
-    border-top: 14px solid transparent;
-    border-bottom: 14px solid transparent;
-    margin-left: 5px;
-  }
-  .loom-bottom { z-index: 3; }
-  .loom-bottom .loom-title {
-    font-family: var(--display); font-weight: 300;
-    font-size: clamp(1.5rem, 2.4vw, 2rem);
-    line-height: 1.15; letter-spacing: -0.02em;
-    color: #fff; margin-bottom: 0.5rem;
-  }
-  .loom-bottom .loom-title .italic { font-style: italic; color: var(--accent); }
-  .loom-bottom .loom-sub {
-    font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(0.85rem, 1.1vw, 1rem);
-    color: rgba(255,255,255,0.7);
-  }
-
-  /* === FOOTER === */
-  .site-footer {
-    padding: 3rem; border-top: 1px solid var(--line);
-    text-align: center;
-  }
-  .footer-tagline {
-    font-family: var(--display); font-style: italic;
-    font-size: clamp(1rem, 1.4vw, 1.3rem);
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 0.75rem;
-  }
-  .footer-copyright {
-    font-family: var(--mono); font-size: 0.6rem;
-    text-transform: uppercase; letter-spacing: 0.2em;
-    color: var(--fg-mute);
-  }
-
-  /* === Mobile === */
-  @media (max-width: 900px) {
-    .receipts-grid { grid-template-columns: 1fr 1fr; }
-    .triptych { grid-template-columns: 1fr; gap: 1rem; max-width: 360px; }
-    .reel { max-width: 280px; margin: 0 auto; }
-  }
   @media (max-width: 768px) {
     body { cursor: auto; }
     .cursor-dot, .cursor-ring { display: none; }
@@ -1463,10 +1195,6 @@
        never collide vertically on small viewports. */
     .work-card .desc { display: none !important; }
     .work-card .link { font-size: 0.5rem; }
-    .receipts-section { padding: 6rem 1.5rem 5rem; }
-    .receipts-grid { grid-template-columns: 1fr; gap: 1rem; }
-    .receipt-card { padding: 2rem 1.5rem; min-height: 240px; }
-    .triptych-section { padding: 5rem 1.5rem 6rem; }
     .contact-grid { gap: 0.5rem; }
     .contact-pill { padding: 0.75rem 1.25rem; font-size: 0.65rem; }
   }
@@ -1508,6 +1236,7 @@
     class="scrub-video"
     id="scrubVideo"
     src="portfolio_background.mp4"
+    poster="poster.jpg"
     autoplay
     muted
     playsinline
@@ -1594,30 +1323,33 @@
 </div>
 
 <!-- ====== ACT 3: WORK CARDS (7-10s, inside the tube wave) ====== -->
+<!-- NOTE: GitHub username is 'brprojects-ctrl' in three places below. When
+     you change your username, search the whole file for 'brprojects-ctrl'
+     and replace all 3 instances at once. -->
 <div class="frame-work" id="frameWork">
   <div class="work-eyebrow">In the barrel · what I'm building</div>
-  <a href="https://github.com/brprojects-ctrl/Custom-CRM-Build" target="_blank" rel="noopener" class="work-card w1">
+  <a href="https://github.com/brprojects-ctrl/Custom-CRM-Build" target="_blank" rel="noopener" class="work-card w1" aria-label="View CRM SaaS Prototype on GitHub">
     <div class="num">01 / Product</div>
     <div class="live-signal"><span class="dot"></span> Last commit: 3d ago</div>
     <div class="title">CRM SaaS <span class="italic">Prototype</span></div>
     <div class="desc">Workflow platform with guided scripts and dashboards.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
-  <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="work-card w2">
+  <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="work-card w2" aria-label="View Autonomous Trading Bots on GitHub">
     <div class="num">02 / Code</div>
     <div class="live-signal"><span class="dot"></span> Last paper trade: 2h ago</div>
     <div class="title">Autonomous <span class="italic">Trading Bots</span></div>
     <div class="desc">RSI, MACD, EMA, VWAP signals. Risk management + paper trading. Python.</div>
     <div class="link">GitHub <span>↗</span></div>
   </a>
-  <a href="#" class="work-card w3">
+  <div class="work-card w3" data-rebuilding="true" aria-label="Sales Forecasting Neural Net — currently rebuilding">
     <div class="num">03 / AI</div>
     <div class="live-signal"><span class="dot"></span> Rebuilding · 12% complete</div>
     <div class="title">Sales Forecasting <span class="italic">Neural Net</span></div>
     <div class="desc">MIT capstone. Predictive model for sales conversion.</div>
     <div class="link">Rebuilding ↗</div>
-  </a>
-  <a href="https://website-stuff-puce.vercel.app/" target="_blank" rel="noopener" class="work-card w4">
+  </div>
+  <a href="https://website-stuff-puce.vercel.app/" target="_blank" rel="noopener" class="work-card w4" aria-label="View Modern POS Site, live">
     <div class="num">04 / Web</div>
     <div class="live-signal"><span class="dot"></span> Live · 99.9% uptime</div>
     <div class="title">Modern <span class="italic">POS Site</span></div>
@@ -1640,7 +1372,7 @@
   <!-- Reels row — four YouTube Shorts -->
   <div class="reels-strip">
 
-    <div class="cine-reel-corner" data-yt="q3-0Ch6Ssv4">
+    <div class="cine-reel-corner" data-yt="q3-0Ch6Ssv4" role="button" tabindex="0" aria-label="Play reel one">
       <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/q3-0Ch6Ssv4/hqdefault.jpg" alt="Reel one" loading="lazy">
       <div class="cine-reel-overlay"></div>
       <div class="cine-reel-play"></div>
@@ -1650,7 +1382,7 @@
       <button class="cine-reel-close" aria-label="Collapse">×</button>
     </div>
 
-    <div class="cine-reel-corner" data-yt="BUNZISaYgg4">
+    <div class="cine-reel-corner" data-yt="BUNZISaYgg4" role="button" tabindex="0" aria-label="Play reel two">
       <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/BUNZISaYgg4/hqdefault.jpg" alt="Reel two" loading="lazy">
       <div class="cine-reel-overlay"></div>
       <div class="cine-reel-play"></div>
@@ -1660,7 +1392,7 @@
       <button class="cine-reel-close" aria-label="Collapse">×</button>
     </div>
 
-    <div class="cine-reel-corner" data-yt="G8UREbGJt0g">
+    <div class="cine-reel-corner" data-yt="G8UREbGJt0g" role="button" tabindex="0" aria-label="Play reel three">
       <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/G8UREbGJt0g/hqdefault.jpg" alt="Reel three" loading="lazy">
       <div class="cine-reel-overlay"></div>
       <div class="cine-reel-play"></div>
@@ -1670,7 +1402,7 @@
       <button class="cine-reel-close" aria-label="Collapse">×</button>
     </div>
 
-    <div class="cine-reel-corner" data-yt="4rgRDMMKJzE">
+    <div class="cine-reel-corner" data-yt="4rgRDMMKJzE" role="button" tabindex="0" aria-label="Play reel four">
       <img class="cine-reel-thumb" src="https://i.ytimg.com/vi/4rgRDMMKJzE/hqdefault.jpg" alt="Reel four" loading="lazy">
       <div class="cine-reel-overlay"></div>
       <div class="cine-reel-play"></div>
@@ -1689,19 +1421,19 @@
   <div class="ask-eyebrow">The horizon</div>
   <div class="segmenter-question">Who's <span class="accent">reading?</span></div>
   <div class="segmenter-pills">
-    <button class="seg-pill" data-seg="recruiter">Recruiter</button>
-    <button class="seg-pill" data-seg="founder">Founder</button>
-    <button class="seg-pill" data-seg="investor">Investor</button>
-    <button class="seg-pill" data-seg="friend">Friend</button>
+    <button class="seg-pill" data-seg="recruiter" aria-label="Show response for recruiters">Recruiter</button>
+    <button class="seg-pill" data-seg="founder" aria-label="Show response for founders">Founder</button>
+    <button class="seg-pill" data-seg="investor" aria-label="Show response for investors">Investor</button>
+    <button class="seg-pill" data-seg="friend" aria-label="Show response for friends">Friend</button>
   </div>
   <div class="segmenter-response">
     <div class="resp-text" id="respText"></div>
     <div class="resp-cta" id="respCta"></div>
   </div>
   <div class="contact-grid">
-    <a href="mailto:brjake20@gmail.com" class="contact-pill"><span>Email</span><span class="arrow">↗</span></a>
-    <a href="https://www.linkedin.com/in/btami/" target="_blank" rel="noopener" class="contact-pill"><span>LinkedIn</span><span class="arrow">↗</span></a>
-    <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="contact-pill"><span>GitHub</span><span class="arrow">↗</span></a>
+    <a href="mailto:brjake20@gmail.com" class="contact-pill" aria-label="Email Brandon Tamisin"><span>Email</span><span class="arrow">↗</span></a>
+    <a href="https://www.linkedin.com/in/btami/" target="_blank" rel="noopener" class="contact-pill" aria-label="View LinkedIn profile (opens in new tab)"><span>LinkedIn</span><span class="arrow">↗</span></a>
+    <a href="https://github.com/brprojects-ctrl" target="_blank" rel="noopener" class="contact-pill" aria-label="View GitHub profile (opens in new tab)"><span>GitHub</span><span class="arrow">↗</span></a>
   </div>
 </div>
 
@@ -1730,7 +1462,7 @@
     ring.style.transform = `translate(${rx}px,${ry}px) translate(-50%,-50%)`;
     requestAnimationFrame(cursorLoop);
   })();
-  document.querySelectorAll('a, .work-card, .reel, .loom-card, .receipt-card, .seg-pill, .cine-reel, .cine-reel-corner, .cine-reel-close').forEach(el => {
+  document.querySelectorAll('a, .work-card, .seg-pill, .cine-reel-corner, .cine-reel-close').forEach(el => {
     el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
   });
@@ -1819,19 +1551,36 @@
 
   // Hide loader once the video can play through
   let videoReady = false;
+  let videoFailed = false;
   function markReady() {
     if (videoReady) return;
     videoReady = true;
     loader.classList.add('hidden');
     setTimeout(() => loader.style.display = 'none', 800);
   }
+  // If the video element errors (network failure, CORS issue, etc.), fall
+  // back gracefully — the poster.jpg becomes the static background and the
+  // scrubbing system stays inert. Site still loads, just without animation.
+  function markFailed() {
+    if (videoFailed) return;
+    videoFailed = true;
+    document.body.classList.add('video-failed');
+    markReady();
+  }
   video.addEventListener('canplaythrough', markReady);
   video.addEventListener('loadeddata', () => {
     // Fallback: if canplaythrough never fires (slow connection), force ready after 3s
     setTimeout(markReady, 3000);
   });
-  // Hard fallback: never block forever
-  setTimeout(markReady, 8000);
+  video.addEventListener('error', markFailed);
+  video.addEventListener('stalled', () => {
+    // If video stalls during initial load and hasn't recovered in 6s, treat as failed
+    setTimeout(() => { if (!videoReady) markFailed(); }, 6000);
+  });
+  // Hard fallback: hide loader after 6s on mobile (down from 8s) so users
+  // don't sit staring at a loading screen on slow networks
+  const loaderTimeout = window.innerWidth <= 768 ? 6000 : 8000;
+  setTimeout(markReady, loaderTimeout);
 
   // Mobile devices throttle requestAnimationFrame heavily during touch
   // scroll, which makes a slow lerp factor look laggy. A higher factor
