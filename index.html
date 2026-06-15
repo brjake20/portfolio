@@ -24,7 +24,7 @@
     --mono: 'JetBrains Mono', monospace;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { background: var(--bg); color: var(--fg); }
+  html, body { background: var(--bg); color: var(--fg); overscroll-behavior: none; }
   body { font-family: var(--body); font-weight: 300; line-height: 1.6; overflow-x: hidden; cursor: none; }
 
   /* =========================================================
@@ -1415,6 +1415,26 @@
     .cursor-dot, .cursor-ring { display: none; }
     nav { padding: 1rem 1.5rem; }
     .nav-tagline { display: none; }
+
+    /* ============ MOBILE PERFORMANCE OPTIMIZATIONS ============
+       Mobile GPUs choke on a few CSS properties that desktop handles
+       free. Stripping them on small screens dramatically improves
+       scroll smoothness:
+       - SVG noise filter: triggers full-screen repaint every scroll frame
+       - backdrop-filter blur: composited per-frame on the GPU; multiple
+         elements running blur at once tanks frame rate
+       The visual difference is barely perceptible (noise was 4% opacity,
+       blur was behind dark backgrounds) but perf gain is substantial.
+       ========================================================== */
+    body::before { display: none; }
+    .work-card,
+    .cine-reel-corner,
+    .seg-pill,
+    .contact-pill {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(8, 18, 28, 0.78);
+    }
     /* Push hero content up enough that hero-sub clears the ticker even
        when ticker wraps to a second line on iPhone SE-class viewports. */
     .frame-hero { padding: 0 1.5rem 12.5rem; }
@@ -1812,10 +1832,18 @@
   // Hard fallback: never block forever
   setTimeout(markReady, 8000);
 
+  // Mobile devices throttle requestAnimationFrame heavily during touch
+  // scroll, which makes a slow lerp factor look laggy. A higher factor
+  // (closer to 1.0 = instant) keeps the video closer to scroll position
+  // even at lower frame rates. Desktop keeps the gentler 0.1 for smoother
+  // easing where RAF runs reliably at 60fps.
+  const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
+  const scrubLerp = isMobileDevice ? 0.25 : 0.1;
+
   let targetTime = 0, currentVideoTime = 0;
   function scrubLoop() {
     if (videoReady) {
-      currentVideoTime += (targetTime - currentVideoTime) * 0.1;
+      currentVideoTime += (targetTime - currentVideoTime) * scrubLerp;
       try { video.currentTime = currentVideoTime; } catch (e) {}
     }
     requestAnimationFrame(scrubLoop);
